@@ -2,9 +2,9 @@
 
 ## 🌟 Project Overview
 
-Yeh ek **production-grade Library Management System** hai jo pure Python aur Tkinter GUI ke saath banaya gaya hai. Isme sabse advanced features hai jo aapko kisi bhi college project mein nahi milenge!
+This is a **production-grade Library Management System** built using pure Python and a Tkinter GUI. It includes advanced features suitable for strong academic and real-world demonstrations.
 
-## 🚀 Unique Features (Jo Kisi Ke Paas Nahi Hai!)
+## 🚀 Unique Features
 
 ### 1. **Multi-User Role System**
 - 🔐 **Admin**: Complete system control
@@ -74,7 +74,7 @@ sqlite3 (comes with Python)
 
 ### Step 1: Clone/Download Files
 ```bash
-# Download the library_system.py file
+# Download project files (at least library_system.py and add_sample_data.py)
 ```
 
 ### Step 2: Run the Program
@@ -82,7 +82,12 @@ sqlite3 (comes with Python)
 python library_system.py
 ```
 
-### Step 3: Default Login Credentials
+### Step 3 (Optional): Add Sample Data
+```bash
+python add_sample_data.py
+```
+
+### Step 4: Default Login Credentials
 ```
 Username: admin
 Password: admin123
@@ -219,6 +224,11 @@ The system comes with:
 - Automatic table creation
 - Sample transaction logs after use
 
+To populate sample books/users quickly:
+```bash
+python add_sample_data.py
+```
+
 ## 🔧 Customization Options
 
 You can easily customize:
@@ -345,6 +355,6 @@ To make this project even more impressive:
 
 ## 🌟 Final Words
 
-Yeh project simple library system se kaafi aage hai. Isme professional features, clean code, security, aur user experience - sab kuch hai. Presentation mein confidence se explain karo ki kaise yeh real-world library ko manage kar sakta hai!
+This project goes far beyond a basic library system. It combines professional features, clean code, security, and strong user experience. Present it confidently by explaining how it can handle real-world library operations.
 
 **All the best for your project! 🚀**

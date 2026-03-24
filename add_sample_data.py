@@ -21,11 +21,11 @@ def populate_sample_data():
     
     # Sample Students
     students = [
-        ("ravi_kumar", "ravi123", "Ravi Kumar", "ravi@email.com", "9876543210"),
-        ("priya_sharma", "priya123", "Priya Sharma", "priya@email.com", "9876543211"),
-        ("amit_singh", "amit123", "Amit Singh", "amit@email.com", "9876543212"),
-        ("neha_patel", "neha123", "Neha Patel", "neha@email.com", "9876543213"),
-        ("rohit_verma", "rohit123", "Rohit Verma", "rohit@email.com", "9876543214"),
+        ("om_kumar", "om123", "Om Kumar", "om@email.com", "9876543210"),
+        ("mufti_armaan", "armaan123", "Mufti Armaan", "armaan@email.com", "9876543211"),
+        ("satish_jalan", "satish123", "Satish Jalan", "satish@email.com", "9876543212"),
+        ("sayan_roy", "sayan123", "Sayan Roy", "sayan@email.com", "9876543213"),
+        ("sitanshu_bharti", "sitanshu123", "Sitanshu Bharti", "sitanshu@email.com", "9876543214"),
     ]
     
     print("\n👥 Adding sample students...")
@@ -140,11 +140,27 @@ def populate_sample_data():
     print("\n📚 Adding sample books...")
     for book in books:
         try:
+            if len(book) == 9:
+                normalized_book = (
+                    book[0],
+                    book[1],
+                    book[2],
+                    book[3],
+                    book[4],
+                    book[5],
+                    book[6],
+                    book[6],
+                    book[7],
+                    book[8],
+                )
+            else:
+                normalized_book = book
+
             cursor.execute('''
                 INSERT INTO books (isbn, title, author, category, publisher, year, 
                                  total_copies, available_copies, shelf_location, description)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', book)
+            ''', normalized_book)
             print(f"   ✓ Added: {book[1]} by {book[2]}")
         except sqlite3.IntegrityError:
             print(f"   ⚠ Skipped: {book[1]} (already exists)")
@@ -190,9 +206,11 @@ def populate_sample_data():
     print("  Username: librarian")
     print("  Password: lib123")
     print("\nStudents:")
-    print("  Username: ravi_kumar    | Password: ravi123")
-    print("  Username: priya_sharma  | Password: priya123")
-    print("  Username: amit_singh    | Password: amit123")
+    print("  Username: om_kumar         | Password: om123")
+    print("  Username: mufti_armaan     | Password: armaan123")
+    print("  Username: satish_jalan     | Password: satish123")
+    print("  Username: sayan_roy        | Password: sayan123")
+    print("  Username: sitanshu_bharti  | Password: sitanshu123")
     print("=" * 50)
     print("\n🚀 Now run: python library_system.py")
 

@@ -136,7 +136,31 @@ class LibraryManagementSystem:
         self.root = root
         self.root.title("Advanced Library Management System")
         self.root.geometry("1200x700")
-        self.root.configure(bg="#2c3e50")
+        self.colors = {
+            'app_bg': "#0f172a",
+            'surface': "#111827",
+            'surface_soft': "#1f2937",
+            'panel': "#f8fafc",
+            'text_light': "#e2e8f0",
+            'text_dark': "#0f172a",
+            'muted': "#94a3b8",
+            'accent': "#2563eb",
+            'accent_hover': "#1d4ed8",
+            'success': "#10b981",
+            'success_hover': "#059669",
+            'danger': "#ef4444",
+            'danger_hover': "#dc2626",
+            'warning': "#f59e0b",
+            'neutral': "#64748b",
+            'input_bg': "#ffffff",
+            'border': "#cbd5e1",
+            'table_header': "#e2e8f0",
+            'table_row': "#ffffff",
+            'table_selected': "#dbeafe",
+            'page_bg': "#f1f5f9"
+        }
+        self.root.configure(bg=self.colors['app_bg'])
+        self.setup_modern_styles()
         
         self.db = LibraryDatabase()
         self.current_user = None
@@ -146,6 +170,122 @@ class LibraryManagementSystem:
         
         # Show login screen
         self.show_login()
+
+    def setup_modern_styles(self):
+        """Configure modern ttk styles"""
+        style = ttk.Style()
+        try:
+            style.theme_use("clam")
+        except tk.TclError:
+            pass
+
+        style.configure(
+            "Modern.TCombobox",
+            fieldbackground=self.colors['input_bg'],
+            background=self.colors['input_bg'],
+            foreground=self.colors['text_dark'],
+            bordercolor=self.colors['border'],
+            arrowcolor=self.colors['text_dark'],
+            relief="flat",
+            padding=5
+        )
+        style.map(
+            "Modern.TCombobox",
+            fieldbackground=[('readonly', self.colors['input_bg'])],
+            background=[('readonly', self.colors['input_bg'])],
+            foreground=[('readonly', self.colors['text_dark'])]
+        )
+
+        style.configure(
+            "Modern.Treeview",
+            background=self.colors['table_row'],
+            fieldbackground=self.colors['table_row'],
+            foreground=self.colors['text_dark'],
+            bordercolor=self.colors['border'],
+            rowheight=30,
+            relief="flat"
+        )
+        style.map("Modern.Treeview", background=[('selected', self.colors['table_selected'])])
+
+        style.configure(
+            "Modern.Treeview.Heading",
+            background=self.colors['table_header'],
+            foreground=self.colors['text_dark'],
+            borderwidth=0,
+            relief="flat",
+            font=("Segoe UI", 10, "bold")
+        )
+
+        style.configure(
+            "Modern.Vertical.TScrollbar",
+            background=self.colors['surface_soft'],
+            troughcolor=self.colors['table_header'],
+            bordercolor=self.colors['table_header'],
+            arrowcolor=self.colors['text_dark'],
+            relief="flat"
+        )
+        style.map(
+            "Modern.Vertical.TScrollbar",
+            background=[('active', self.colors['surface'])]
+        )
+
+        style.configure(
+            "Modern.Horizontal.TScrollbar",
+            background=self.colors['surface_soft'],
+            troughcolor=self.colors['table_header'],
+            bordercolor=self.colors['table_header'],
+            arrowcolor=self.colors['text_dark'],
+            relief="flat"
+        )
+        style.map(
+            "Modern.Horizontal.TScrollbar",
+            background=[('active', self.colors['surface'])]
+        )
+
+    def create_modern_button(self, parent, text, command, variant="primary", font=("Segoe UI", 11, "bold"),
+                             padx=24, pady=10, anchor="center"):
+        """Create consistently styled button"""
+        palette = {
+            'primary': (self.colors['accent'], self.colors['accent_hover']),
+            'success': (self.colors['success'], self.colors['success_hover']),
+            'danger': (self.colors['danger'], self.colors['danger_hover']),
+            'neutral': (self.colors['neutral'], "#475569"),
+            'warning': (self.colors['warning'], "#d97706")
+        }
+        bg, active_bg = palette.get(variant, palette['primary'])
+        return tk.Button(
+            parent,
+            text=text,
+            command=command,
+            font=font,
+            bg=bg,
+            fg="white",
+            activebackground=active_bg,
+            activeforeground="white",
+            relief="flat",
+            borderwidth=0,
+            padx=padx,
+            pady=pady,
+            cursor="hand2",
+            anchor=anchor
+        )
+
+    def create_modern_entry(self, parent, width=30, show=None, font=("Segoe UI", 11)):
+        """Create consistently styled entry"""
+        entry = tk.Entry(
+            parent,
+            width=width,
+            font=font,
+            show=show,
+            bg=self.colors['input_bg'],
+            fg=self.colors['text_dark'],
+            insertbackground=self.colors['text_dark'],
+            relief="flat",
+            highlightthickness=1,
+            highlightbackground=self.colors['border'],
+            highlightcolor=self.colors['accent']
+        )
+        return entry
     
     def clear_window(self):
         """Clear all widgets from window"""
@@ -155,38 +295,37 @@ class LibraryManagementSystem:
     def show_login(self):
         """Display login screen"""
         self.clear_window()
+        self.root.configure(bg=self.colors['app_bg'])
         
         # Main frame
-        login_frame = tk.Frame(self.root, bg="#34495e", padx=40, pady=40)
+        login_frame = tk.Frame(self.root, bg=self.colors['surface'], padx=45, pady=45)
         login_frame.place(relx=0.5, rely=0.5, anchor="center")
         
         # Title
         title = tk.Label(login_frame, text="📚 Library Management System", 
-                        font=("Arial", 24, "bold"), bg="#34495e", fg="#ecf0f1")
+                font=("Segoe UI", 24, "bold"), bg=self.colors['surface'], fg=self.colors['text_light'])
         title.grid(row=0, column=0, columnspan=2, pady=(0, 30))
         
         # Username
-        tk.Label(login_frame, text="Username:", font=("Arial", 12), 
-                bg="#34495e", fg="#ecf0f1").grid(row=1, column=0, sticky="e", padx=10, pady=10)
-        self.username_entry = tk.Entry(login_frame, font=("Arial", 12), width=25)
+        tk.Label(login_frame, text="Username:", font=("Segoe UI", 11), 
+            bg=self.colors['surface'], fg=self.colors['text_light']).grid(row=1, column=0, sticky="e", padx=10, pady=10)
+        self.username_entry = self.create_modern_entry(login_frame, width=28, font=("Segoe UI", 11))
         self.username_entry.grid(row=1, column=1, pady=10)
         
         # Password
-        tk.Label(login_frame, text="Password:", font=("Arial", 12), 
-                bg="#34495e", fg="#ecf0f1").grid(row=2, column=0, sticky="e", padx=10, pady=10)
-        self.password_entry = tk.Entry(login_frame, font=("Arial", 12), width=25, show="*")
+        tk.Label(login_frame, text="Password:", font=("Segoe UI", 11), 
+            bg=self.colors['surface'], fg=self.colors['text_light']).grid(row=2, column=0, sticky="e", padx=10, pady=10)
+        self.password_entry = self.create_modern_entry(login_frame, width=28, show="*", font=("Segoe UI", 11))
         self.password_entry.grid(row=2, column=1, pady=10)
         
         # Login button
-        login_btn = tk.Button(login_frame, text="Login", font=("Arial", 12, "bold"),
-                             bg="#27ae60", fg="white", padx=30, pady=10,
-                             command=self.login)
+        login_btn = self.create_modern_button(login_frame, "Login", self.login, variant="success",
+                              font=("Segoe UI", 11, "bold"), padx=34, pady=10)
         login_btn.grid(row=3, column=0, columnspan=2, pady=20)
         
         # Register button
-        register_btn = tk.Button(login_frame, text="Register New Student", 
-                                font=("Arial", 10), bg="#3498db", fg="white",
-                                command=self.show_register)
+        register_btn = self.create_modern_button(login_frame, "Register New Student", self.show_register,
+                             variant="primary", font=("Segoe UI", 10), padx=22, pady=8)
         register_btn.grid(row=4, column=0, columnspan=2)
         
         # Bind Enter key
@@ -228,12 +367,13 @@ class LibraryManagementSystem:
     def show_register(self):
         """Show student registration form"""
         self.clear_window()
+        self.root.configure(bg=self.colors['app_bg'])
         
-        reg_frame = tk.Frame(self.root, bg="#34495e", padx=40, pady=30)
+        reg_frame = tk.Frame(self.root, bg=self.colors['surface'], padx=45, pady=35)
         reg_frame.place(relx=0.5, rely=0.5, anchor="center")
         
-        tk.Label(reg_frame, text="Student Registration", font=("Arial", 20, "bold"),
-                bg="#34495e", fg="#ecf0f1").grid(row=0, column=0, columnspan=2, pady=20)
+        tk.Label(reg_frame, text="Student Registration", font=("Segoe UI", 20, "bold"),
+            bg=self.colors['surface'], fg=self.colors['text_light']).grid(row=0, column=0, columnspan=2, pady=20)
         
         # Form fields
         fields = [
@@ -247,25 +387,21 @@ class LibraryManagementSystem:
         self.reg_entries = {}
         
         for idx, (label, key) in enumerate(fields, start=1):
-            tk.Label(reg_frame, text=label, font=("Arial", 11), 
-                    bg="#34495e", fg="#ecf0f1").grid(row=idx, column=0, sticky="e", padx=10, pady=8)
-            entry = tk.Entry(reg_frame, font=("Arial", 11), width=30)
-            if key == "password":
-                entry.config(show="*")
+            tk.Label(reg_frame, text=label, font=("Segoe UI", 10), 
+                    bg=self.colors['surface'], fg=self.colors['text_light']).grid(row=idx, column=0, sticky="e", padx=10, pady=8)
+            entry = self.create_modern_entry(reg_frame, width=32, show="*" if key == "password" else None)
             entry.grid(row=idx, column=1, pady=8)
             self.reg_entries[key] = entry
         
         # Buttons
-        btn_frame = tk.Frame(reg_frame, bg="#34495e")
+        btn_frame = tk.Frame(reg_frame, bg=self.colors['surface'])
         btn_frame.grid(row=len(fields)+1, column=0, columnspan=2, pady=20)
         
-        tk.Button(btn_frame, text="Register", font=("Arial", 11, "bold"),
-                 bg="#27ae60", fg="white", padx=20, pady=8,
-                 command=self.register_student).pack(side="left", padx=5)
+        self.create_modern_button(btn_frame, "Register", self.register_student, variant="success",
+                                  font=("Segoe UI", 10, "bold"), padx=20, pady=8).pack(side="left", padx=5)
         
-        tk.Button(btn_frame, text="Back to Login", font=("Arial", 11),
-                 bg="#95a5a6", fg="white", padx=20, pady=8,
-                 command=self.show_login).pack(side="left", padx=5)
+        self.create_modern_button(btn_frame, "Back to Login", self.show_login, variant="neutral",
+                                  font=("Segoe UI", 10), padx=20, pady=8).pack(side="left", padx=5)
     
     def register_student(self):
         """Register a new student"""
@@ -297,40 +433,41 @@ class LibraryManagementSystem:
     def show_dashboard(self):
         """Display main dashboard based on user role"""
         self.clear_window()
+        self.root.configure(bg=self.colors['app_bg'])
         
         # Header
-        header = tk.Frame(self.root, bg="#2c3e50", height=80)
+        header = tk.Frame(self.root, bg=self.colors['surface'], height=80)
         header.pack(fill="x")
         
         tk.Label(header, text=f"Welcome, {self.current_user['full_name']} ({self.current_user['role'].upper()})",
-                font=("Arial", 16, "bold"), bg="#2c3e50", fg="#ecf0f1").pack(side="left", padx=20, pady=20)
+            font=("Segoe UI", 15, "bold"), bg=self.colors['surface'], fg=self.colors['text_light']).pack(side="left", padx=20, pady=20)
         
-        tk.Button(header, text="Logout", font=("Arial", 11), bg="#e74c3c", fg="white",
-                 command=self.logout).pack(side="right", padx=20)
+        self.create_modern_button(header, "Logout", self.logout, variant="danger",
+                      font=("Segoe UI", 10), padx=20, pady=7).pack(side="right", padx=20)
         
         # Main content area
-        content = tk.Frame(self.root, bg="#ecf0f1")
+        content = tk.Frame(self.root, bg=self.colors['page_bg'])
         content.pack(fill="both", expand=True, padx=20, pady=20)
         
         # Left sidebar - Menu
-        menu_frame = tk.Frame(content, bg="#34495e", width=250)
+        menu_frame = tk.Frame(content, bg=self.colors['surface_soft'], width=250)
         menu_frame.pack(side="left", fill="y", padx=(0, 20))
         
-        tk.Label(menu_frame, text="📋 Menu", font=("Arial", 14, "bold"),
-                bg="#34495e", fg="#ecf0f1", pady=15).pack(fill="x")
+        tk.Label(menu_frame, text="📋 Menu", font=("Segoe UI", 14, "bold"),
+            bg=self.colors['surface_soft'], fg=self.colors['text_light'], pady=15).pack(fill="x")
         
         # Menu options based on role
         menu_options = self.get_menu_options()
         
         for option, command in menu_options:
             btn = tk.Button(menu_frame, text=option, font=("Arial", 11),
-                           bg="#2c3e50", fg="#ecf0f1", activebackground="#1abc9c",
+                           bg=self.colors['surface'], fg=self.colors['text_light'], activebackground=self.colors['accent'],
                            activeforeground="white", relief="flat", anchor="w",
-                           padx=20, pady=12, command=command)
+                           padx=20, pady=12, command=command, borderwidth=0, cursor="hand2")
             btn.pack(fill="x", pady=2)
         
         # Right content area
-        self.content_area = tk.Frame(content, bg="white")
+        self.content_area = tk.Frame(content, bg=self.colors['page_bg'])
         self.content_area.pack(side="right", fill="both", expand=True)
         
         # Show default view
@@ -370,11 +507,11 @@ class LibraryManagementSystem:
         for widget in self.content_area.winfo_children():
             widget.destroy()
         
-        tk.Label(self.content_area, text="📊 Dashboard", font=("Arial", 18, "bold"),
-                bg="white").pack(pady=20)
+        tk.Label(self.content_area, text="📊 Dashboard", font=("Segoe UI", 19, "bold"),
+            bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
         # Statistics cards
-        stats_frame = tk.Frame(self.content_area, bg="white")
+        stats_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         stats_frame.pack(fill="both", expand=True, padx=20)
         
         conn = self.db.get_connection()
@@ -400,20 +537,20 @@ class LibraryManagementSystem:
         
         # Create stat cards
         stats = [
-            ("📚 Total Books", total_books, "#3498db"),
-            ("📖 Total Copies", total_copies, "#9b59b6"),
-            ("✅ Available", available, "#27ae60"),
-            ("📤 Issued", currently_issued, "#e67e22"),
-            ("👥 Students", total_students, "#1abc9c"),
+            ("📚 Total Books", total_books, "#2563eb"),
+            ("📖 Total Copies", total_copies, "#7c3aed"),
+            ("✅ Available", available, "#10b981"),
+            ("📤 Issued", currently_issued, "#f59e0b"),
+            ("👥 Students", total_students, "#0ea5e9"),
         ]
         
         for idx, (label, value, color) in enumerate(stats):
             card = tk.Frame(stats_frame, bg=color, relief="raised", bd=2)
             card.grid(row=idx//3, column=idx%3, padx=15, pady=15, sticky="nsew")
             
-            tk.Label(card, text=str(value), font=("Arial", 28, "bold"),
+            tk.Label(card, text=str(value), font=("Segoe UI", 28, "bold"),
                     bg=color, fg="white").pack(pady=(20, 5))
-            tk.Label(card, text=label, font=("Arial", 12),
+            tk.Label(card, text=label, font=("Segoe UI", 11),
                     bg=color, fg="white").pack(pady=(0, 20))
             
             stats_frame.grid_columnconfigure(idx%3, weight=1)
@@ -421,7 +558,8 @@ class LibraryManagementSystem:
         # Recent activity (for admin/librarian)
         if self.current_user['role'] in ['admin', 'librarian']:
             recent_frame = tk.LabelFrame(self.content_area, text="Recent Issues", 
-                                        font=("Arial", 12, "bold"), bg="white", padx=10, pady=10)
+                                        font=("Segoe UI", 11, "bold"), bg=self.colors['panel'],
+                                        fg=self.colors['text_dark'], padx=10, pady=10)
             recent_frame.pack(fill="both", expand=True, padx=20, pady=20)
             
             conn = self.db.get_connection()
@@ -441,53 +579,56 @@ class LibraryManagementSystem:
             if recent:
                 for issue in recent:
                     text = f"📖 {issue[0]} | 👤 {issue[1]} | Issued: {issue[2]} | Due: {issue[3]}"
-                    tk.Label(recent_frame, text=text, font=("Arial", 10),
-                            bg="white", anchor="w").pack(fill="x", pady=2)
+                    tk.Label(recent_frame, text=text, font=("Segoe UI", 10),
+                        bg=self.colors['panel'], fg=self.colors['text_dark'], anchor="w").pack(fill="x", pady=2)
     
     def show_search_books(self):
         """Display book search interface"""
         for widget in self.content_area.winfo_children():
             widget.destroy()
         
-        tk.Label(self.content_area, text="🔍 Search Books", font=("Arial", 18, "bold"),
-                bg="white").pack(pady=20)
+        tk.Label(self.content_area, text="🔍 Search Books", font=("Segoe UI", 19, "bold"),
+            bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
         # Search controls
-        search_frame = tk.Frame(self.content_area, bg="white")
+        search_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         search_frame.pack(fill="x", padx=20, pady=10)
         
-        tk.Label(search_frame, text="Search by:", font=("Arial", 11),
-                bg="white").grid(row=0, column=0, padx=5)
+        tk.Label(search_frame, text="Search by:", font=("Segoe UI", 11),
+            bg=self.colors['page_bg'], fg=self.colors['text_dark']).grid(row=0, column=0, padx=5)
         
         self.search_by = ttk.Combobox(search_frame, values=["Title", "Author", "ISBN", "Category"],
-                                     state="readonly", width=12)
+                         state="readonly", width=12, style="Modern.TCombobox")
         self.search_by.set("Title")
         self.search_by.grid(row=0, column=1, padx=5)
         
-        self.search_entry = tk.Entry(search_frame, font=("Arial", 11), width=30)
+        self.search_entry = self.create_modern_entry(search_frame, width=32)
         self.search_entry.grid(row=0, column=2, padx=5)
         
-        tk.Button(search_frame, text="Search", font=("Arial", 10, "bold"),
-                 bg="#3498db", fg="white", command=self.search_books).grid(row=0, column=3, padx=5)
+        self.create_modern_button(search_frame, "Search", self.search_books,
+                      variant="primary", font=("Segoe UI", 10, "bold"),
+                      padx=18, pady=7).grid(row=0, column=3, padx=5)
         
-        tk.Button(search_frame, text="Show All", font=("Arial", 10),
-                 bg="#95a5a6", fg="white", command=lambda: self.search_books(show_all=True)).grid(row=0, column=4, padx=5)
+        self.create_modern_button(search_frame, "Show All", lambda: self.search_books(show_all=True),
+                      variant="neutral", font=("Segoe UI", 10),
+                      padx=16, pady=7).grid(row=0, column=4, padx=5)
         
         # Results table
-        table_frame = tk.Frame(self.content_area, bg="white")
+        table_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         table_frame.pack(fill="both", expand=True, padx=20, pady=10)
         
         # Scrollbars
-        v_scroll = tk.Scrollbar(table_frame)
+        v_scroll = ttk.Scrollbar(table_frame, style="Modern.Vertical.TScrollbar")
         v_scroll.pack(side="right", fill="y")
         
-        h_scroll = tk.Scrollbar(table_frame, orient="horizontal")
+        h_scroll = ttk.Scrollbar(table_frame, orient="horizontal", style="Modern.Horizontal.TScrollbar")
         h_scroll.pack(side="bottom", fill="x")
         
         # Treeview
         columns = ("ID", "ISBN", "Title", "Author", "Category", "Year", "Available", "Location")
         self.search_tree = ttk.Treeview(table_frame, columns=columns, show="headings",
-                                       yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set)
+                                       yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set,
+                                       style="Modern.Treeview")
         
         for col in columns:
             self.search_tree.heading(col, text=col)
@@ -496,7 +637,7 @@ class LibraryManagementSystem:
         self.search_tree.column("Title", width=200)
         self.search_tree.column("Author", width=150)
         
-        self.search_tree.pack(fill="both", expand=True)
+        self.search_tree.pack(fill="both", expand=True, padx=(0, 6), pady=(0, 6))
         
         v_scroll.config(command=self.search_tree.yview)
         h_scroll.config(command=self.search_tree.xview)
@@ -536,15 +677,15 @@ class LibraryManagementSystem:
         for widget in self.content_area.winfo_children():
             widget.destroy()
         
-        tk.Label(self.content_area, text="📖 My Issued Books", font=("Arial", 18, "bold"),
-                bg="white").pack(pady=20)
+        tk.Label(self.content_area, text="📖 My Issued Books", font=("Segoe UI", 19, "bold"),
+            bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
         # Table
-        table_frame = tk.Frame(self.content_area, bg="white")
+        table_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         table_frame.pack(fill="both", expand=True, padx=20, pady=10)
         
         columns = ("Book Title", "Author", "Issue Date", "Due Date", "Fine", "Status")
-        tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=15)
+        tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=15, style="Modern.Treeview")
         
         for col in columns:
             tree.heading(col, text=col)
@@ -553,10 +694,10 @@ class LibraryManagementSystem:
         tree.column("Book Title", width=250)
         
         # Scrollbar
-        scrollbar = tk.Scrollbar(table_frame, command=tree.yview)
+        scrollbar = ttk.Scrollbar(table_frame, command=tree.yview, style="Modern.Vertical.TScrollbar")
         tree.configure(yscrollcommand=scrollbar.set)
         scrollbar.pack(side="right", fill="y")
-        tree.pack(fill="both", expand=True)
+        tree.pack(fill="both", expand=True, padx=(0, 6), pady=(0, 6))
         
         # Fetch data
         conn = self.db.get_connection()
@@ -591,10 +732,10 @@ class LibraryManagementSystem:
         for widget in self.content_area.winfo_children():
             widget.destroy()
         
-        tk.Label(self.content_area, text="➕ Add New Book", font=("Arial", 18, "bold"),
-                bg="white").pack(pady=20)
+        tk.Label(self.content_area, text="➕ Add New Book", font=("Segoe UI", 19, "bold"),
+            bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
-        form_frame = tk.Frame(self.content_area, bg="white")
+        form_frame = tk.Frame(self.content_area, bg=self.colors['panel'], padx=24, pady=24)
         form_frame.pack(pady=20)
         
         fields = [
@@ -612,20 +753,33 @@ class LibraryManagementSystem:
         self.book_entries = {}
         
         for idx, (label, key) in enumerate(fields):
-            tk.Label(form_frame, text=label, font=("Arial", 11), bg="white").grid(
+            tk.Label(form_frame, text=label, font=("Segoe UI", 10),
+                    bg=self.colors['panel'], fg=self.colors['text_dark']).grid(
                 row=idx, column=0, sticky="e", padx=10, pady=8)
             
             if key == "description":
-                entry = tk.Text(form_frame, font=("Arial", 11), width=35, height=4)
+                entry = tk.Text(
+                    form_frame,
+                    font=("Segoe UI", 11),
+                    width=35,
+                    height=4,
+                    bg=self.colors['input_bg'],
+                    fg=self.colors['text_dark'],
+                    insertbackground=self.colors['text_dark'],
+                    relief="flat",
+                    highlightthickness=1,
+                    highlightbackground=self.colors['border'],
+                    highlightcolor=self.colors['accent']
+                )
             else:
-                entry = tk.Entry(form_frame, font=("Arial", 11), width=35)
+                entry = self.create_modern_entry(form_frame, width=37)
             
             entry.grid(row=idx, column=1, pady=8)
             self.book_entries[key] = entry
         
-        tk.Button(self.content_area, text="Add Book", font=("Arial", 12, "bold"),
-                 bg="#27ae60", fg="white", padx=30, pady=10,
-                 command=self.add_book).pack(pady=20)
+        self.create_modern_button(self.content_area, "Add Book", self.add_book,
+                                  variant="success", font=("Segoe UI", 11, "bold"),
+                                  padx=30, pady=10).pack(pady=20)
     
     def add_book(self):
         """Add book to database"""
@@ -671,35 +825,47 @@ class LibraryManagementSystem:
         for widget in self.content_area.winfo_children():
             widget.destroy()
         
-        tk.Label(self.content_area, text="📤 Issue Book", font=("Arial", 18, "bold"),
-                bg="white").pack(pady=20)
+        tk.Label(self.content_area, text="📤 Issue Book", font=("Segoe UI", 19, "bold"),
+            bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
-        form_frame = tk.Frame(self.content_area, bg="white")
+        form_frame = tk.Frame(self.content_area, bg=self.colors['panel'], padx=24, pady=24)
         form_frame.pack(pady=20)
         
         # Student username
-        tk.Label(form_frame, text="Student Username:", font=("Arial", 11),
-                bg="white").grid(row=0, column=0, sticky="e", padx=10, pady=10)
-        self.issue_username = tk.Entry(form_frame, font=("Arial", 11), width=30)
+        tk.Label(form_frame, text="Student Username:", font=("Segoe UI", 10),
+            bg=self.colors['panel'], fg=self.colors['text_dark']).grid(row=0, column=0, sticky="e", padx=10, pady=10)
+        self.issue_username = self.create_modern_entry(form_frame, width=32)
         self.issue_username.grid(row=0, column=1, pady=10)
         
         # Book ISBN or ID
-        tk.Label(form_frame, text="Book ISBN/ID:", font=("Arial", 11),
-                bg="white").grid(row=1, column=0, sticky="e", padx=10, pady=10)
-        self.issue_book_id = tk.Entry(form_frame, font=("Arial", 11), width=30)
+        tk.Label(form_frame, text="Book ISBN/ID:", font=("Segoe UI", 10),
+            bg=self.colors['panel'], fg=self.colors['text_dark']).grid(row=1, column=0, sticky="e", padx=10, pady=10)
+        self.issue_book_id = self.create_modern_entry(form_frame, width=32)
         self.issue_book_id.grid(row=1, column=1, pady=10)
         
         # Days
-        tk.Label(form_frame, text="Issue Days:", font=("Arial", 11),
-                bg="white").grid(row=2, column=0, sticky="e", padx=10, pady=10)
-        self.issue_days = tk.Spinbox(form_frame, from_=1, to=30, font=("Arial", 11), width=28)
+        tk.Label(form_frame, text="Issue Days:", font=("Segoe UI", 10),
+            bg=self.colors['panel'], fg=self.colors['text_dark']).grid(row=2, column=0, sticky="e", padx=10, pady=10)
+        self.issue_days = tk.Spinbox(
+            form_frame,
+            from_=1,
+            to=30,
+            font=("Segoe UI", 11),
+            width=30,
+            bg=self.colors['input_bg'],
+            fg=self.colors['text_dark'],
+            relief="flat",
+            highlightthickness=1,
+            highlightbackground=self.colors['border'],
+            highlightcolor=self.colors['accent']
+        )
         self.issue_days.delete(0, "end")
         self.issue_days.insert(0, "14")
         self.issue_days.grid(row=2, column=1, pady=10)
         
-        tk.Button(self.content_area, text="Issue Book", font=("Arial", 12, "bold"),
-                 bg="#3498db", fg="white", padx=30, pady=10,
-                 command=self.issue_book).pack(pady=20)
+        self.create_modern_button(self.content_area, "Issue Book", self.issue_book,
+                      variant="primary", font=("Segoe UI", 11, "bold"),
+                      padx=30, pady=10).pack(pady=20)
     
     def issue_book(self):
         """Issue a book to a student"""
@@ -770,30 +936,30 @@ class LibraryManagementSystem:
         for widget in self.content_area.winfo_children():
             widget.destroy()
         
-        tk.Label(self.content_area, text="📥 Return Book", font=("Arial", 18, "bold"),
-                bg="white").pack(pady=20)
+        tk.Label(self.content_area, text="📥 Return Book", font=("Segoe UI", 19, "bold"),
+            bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
-        form_frame = tk.Frame(self.content_area, bg="white")
+        form_frame = tk.Frame(self.content_area, bg=self.colors['panel'], padx=20, pady=20)
         form_frame.pack(pady=20)
         
-        tk.Label(form_frame, text="Issue ID:", font=("Arial", 11),
-                bg="white").grid(row=0, column=0, sticky="e", padx=10, pady=10)
-        self.return_issue_id = tk.Entry(form_frame, font=("Arial", 11), width=30)
+        tk.Label(form_frame, text="Issue ID:", font=("Segoe UI", 10),
+            bg=self.colors['panel'], fg=self.colors['text_dark']).grid(row=0, column=0, sticky="e", padx=10, pady=10)
+        self.return_issue_id = self.create_modern_entry(form_frame, width=32)
         self.return_issue_id.grid(row=0, column=1, pady=10)
         
-        tk.Button(self.content_area, text="Return Book", font=("Arial", 12, "bold"),
-                 bg="#27ae60", fg="white", padx=30, pady=10,
-                 command=self.return_book).pack(pady=20)
+        self.create_modern_button(self.content_area, "Return Book", self.return_book,
+                      variant="success", font=("Segoe UI", 11, "bold"),
+                      padx=30, pady=10).pack(pady=20)
         
         # Show pending returns
-        tk.Label(self.content_area, text="Pending Returns:", font=("Arial", 14, "bold"),
-                bg="white").pack(pady=(30, 10))
+        tk.Label(self.content_area, text="Pending Returns:", font=("Segoe UI", 14, "bold"),
+            bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=(30, 10))
         
-        table_frame = tk.Frame(self.content_area, bg="white")
+        table_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         table_frame.pack(fill="both", expand=True, padx=20, pady=10)
         
         columns = ("Issue ID", "Book", "Student", "Issue Date", "Due Date", "Days Overdue", "Fine")
-        tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=10)
+        tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=10, style="Modern.Treeview")
         
         for col in columns:
             tree.heading(col, text=col)
@@ -891,18 +1057,18 @@ class LibraryManagementSystem:
         for widget in self.content_area.winfo_children():
             widget.destroy()
         
-        tk.Label(self.content_area, text="🎫 Reserve a Book", font=("Arial", 18, "bold"),
-                bg="white").pack(pady=20)
+        tk.Label(self.content_area, text="🎫 Reserve a Book", font=("Segoe UI", 19, "bold"),
+            bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
         # Available books for reservation
         tk.Label(self.content_area, text="Books Currently Unavailable:", 
-                font=("Arial", 12), bg="white").pack(pady=10)
+            font=("Segoe UI", 11), bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=10)
         
-        table_frame = tk.Frame(self.content_area, bg="white")
+        table_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         table_frame.pack(fill="both", expand=True, padx=20, pady=10)
         
         columns = ("Book ID", "Title", "Author", "Total", "Available")
-        tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=15)
+        tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=15, style="Modern.Treeview")
         
         for col in columns:
             tree.heading(col, text=col)
@@ -928,16 +1094,17 @@ class LibraryManagementSystem:
             tree.insert("", "end", values=book)
         
         # Reserve button
-        btn_frame = tk.Frame(self.content_area, bg="white")
+        btn_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         btn_frame.pack(pady=20)
         
-        tk.Label(btn_frame, text="Book ID:", font=("Arial", 11),
-                bg="white").pack(side="left", padx=5)
-        self.reserve_book_id = tk.Entry(btn_frame, font=("Arial", 11), width=15)
+        tk.Label(btn_frame, text="Book ID:", font=("Segoe UI", 10),
+            bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(side="left", padx=5)
+        self.reserve_book_id = self.create_modern_entry(btn_frame, width=18)
         self.reserve_book_id.pack(side="left", padx=5)
         
-        tk.Button(btn_frame, text="Reserve", font=("Arial", 11, "bold"),
-                 bg="#e67e22", fg="white", command=self.reserve_book).pack(side="left", padx=5)
+        self.create_modern_button(btn_frame, "Reserve", self.reserve_book,
+                      variant="warning", font=("Segoe UI", 10, "bold"),
+                      padx=18, pady=8).pack(side="left", padx=5)
     
     def reserve_book(self):
         """Reserve a book"""
@@ -999,15 +1166,15 @@ class LibraryManagementSystem:
         for widget in self.content_area.winfo_children():
             widget.destroy()
         
-        tk.Label(self.content_area, text="👥 Manage Users", font=("Arial", 18, "bold"),
-                bg="white").pack(pady=20)
+        tk.Label(self.content_area, text="👥 Manage Users", font=("Segoe UI", 19, "bold"),
+            bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
         # Users table
-        table_frame = tk.Frame(self.content_area, bg="white")
+        table_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         table_frame.pack(fill="both", expand=True, padx=20, pady=10)
         
         columns = ("ID", "Username", "Full Name", "Role", "Email", "Phone")
-        tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=20)
+        tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=20, style="Modern.Treeview")
         
         for col in columns:
             tree.heading(col, text=col)
@@ -1031,15 +1198,16 @@ class LibraryManagementSystem:
         for widget in self.content_area.winfo_children():
             widget.destroy()
         
-        tk.Label(self.content_area, text="📊 Reports & Analytics", font=("Arial", 18, "bold"),
-                bg="white").pack(pady=20)
+        tk.Label(self.content_area, text="📊 Reports & Analytics", font=("Segoe UI", 19, "bold"),
+            bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
-        reports_frame = tk.Frame(self.content_area, bg="white")
+        reports_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         reports_frame.pack(fill="both", expand=True, padx=20)
         
         # Overdue books
         overdue_frame = tk.LabelFrame(reports_frame, text="⚠️ Overdue Books", 
-                                     font=("Arial", 12, "bold"), bg="white", padx=10, pady=10)
+                         font=("Segoe UI", 12, "bold"), bg=self.colors['panel'],
+                         fg=self.colors['text_dark'], padx=10, pady=10)
         overdue_frame.pack(fill="x", pady=10)
         
         conn = self.db.get_connection()
@@ -1059,15 +1227,16 @@ class LibraryManagementSystem:
             for item in overdue:
                 days = (datetime.now() - datetime.strptime(item[2], "%Y-%m-%d")).days
                 text = f"📖 {item[0]} | 👤 {item[1]} | {days} days overdue"
-                tk.Label(overdue_frame, text=text, font=("Arial", 10), bg="white",
+                tk.Label(overdue_frame, text=text, font=("Segoe UI", 10), bg=self.colors['panel'],
                         fg="red", anchor="w").pack(fill="x", pady=2)
         else:
             tk.Label(overdue_frame, text="✅ No overdue books!", 
-                    font=("Arial", 10), bg="white", fg="green").pack()
+                    font=("Segoe UI", 10), bg=self.colors['panel'], fg="green").pack()
         
         # Most issued books
         popular_frame = tk.LabelFrame(reports_frame, text="🔥 Most Issued Books", 
-                                     font=("Arial", 12, "bold"), bg="white", padx=10, pady=10)
+                                     font=("Segoe UI", 12, "bold"), bg=self.colors['panel'],
+                                     fg=self.colors['text_dark'], padx=10, pady=10)
         popular_frame.pack(fill="x", pady=10)
         
         cursor.execute('''
@@ -1083,8 +1252,8 @@ class LibraryManagementSystem:
         
         for item in popular:
             text = f"📚 {item[0]} - Issued {item[1]} times"
-            tk.Label(popular_frame, text=text, font=("Arial", 10),
-                    bg="white", anchor="w").pack(fill="x", pady=2)
+            tk.Label(popular_frame, text=text, font=("Segoe UI", 10),
+                bg=self.colors['panel'], fg=self.colors['text_dark'], anchor="w").pack(fill="x", pady=2)
         
         conn.close()
     
@@ -1093,20 +1262,20 @@ class LibraryManagementSystem:
         for widget in self.content_area.winfo_children():
             widget.destroy()
         
-        tk.Label(self.content_area, text="📜 Activity Log", font=("Arial", 18, "bold"),
-                bg="white").pack(pady=20)
+        tk.Label(self.content_area, text="📜 Activity Log", font=("Segoe UI", 19, "bold"),
+            bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
-        table_frame = tk.Frame(self.content_area, bg="white")
+        table_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         table_frame.pack(fill="both", expand=True, padx=20, pady=10)
         
         # Scrollbar
-        scrollbar = tk.Scrollbar(table_frame)
+        scrollbar = ttk.Scrollbar(table_frame, style="Modern.Vertical.TScrollbar")
         scrollbar.pack(side="right", fill="y")
         
         # Treeview
         columns = ("ID", "User", "Action", "Details", "Timestamp")
         tree = ttk.Treeview(table_frame, columns=columns, show="headings", 
-                           yscrollcommand=scrollbar.set, height=25)
+                           yscrollcommand=scrollbar.set, height=25, style="Modern.Treeview")
         
         for col in columns:
             tree.heading(col, text=col)
@@ -1116,7 +1285,7 @@ class LibraryManagementSystem:
         tree.column("Timestamp", width=150)
         
         scrollbar.config(command=tree.yview)
-        tree.pack(fill="both", expand=True)
+        tree.pack(fill="both", expand=True, padx=(0, 6), pady=(0, 6))
         
         # Fetch logs
         conn = self.db.get_connection()
