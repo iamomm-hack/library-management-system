@@ -2,9 +2,10 @@
 
 ## 🌟 Project Overview
 
-Yeh ek **production-grade Library Management System** hai jo pure Python aur Tkinter GUI ke saath banaya gaya hai. Isme sabse advanced features hai jo aapko kisi bhi college project mein nahi milenge!
+This is a **production-grade Library Management System** built entirely using Python with a Tkinter-based GUI. It includes highly advanced features that you typically won’t find in standard college projects!
 
-## 🚀 Unique Features (Jo Kisi Ke Paas Nahi Hai!)
+
+## 🚀 Unique Features
 
 ### 1. **Multi-User Role System**
 - 🔐 **Admin**: Complete system control
@@ -343,8 +344,5 @@ To make this project even more impressive:
 
 ---
 
-## 🌟 Final Words
 
-Yeh project simple library system se kaafi aage hai. Isme professional features, clean code, security, aur user experience - sab kuch hai. Presentation mein confidence se explain karo ki kaise yeh real-world library ko manage kar sakta hai!
 
-**All the best for your project! 🚀**
