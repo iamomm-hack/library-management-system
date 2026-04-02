@@ -94,6 +94,39 @@ Username: admin
 Password: admin123
 ```
 
+## 🐘 PostgreSQL Setup + Excel Student Import
+
+If you want to store real student data in PostgreSQL, follow these steps:
+
+### 1) Install required Python packages
+```bash
+pip install psycopg2-binary pandas openpyxl
+```
+
+### 2) Create PostgreSQL database
+```sql
+CREATE DATABASE library_db;
+```
+
+### 3) Prepare Excel file
+Keep these columns in your Excel sheet (case-insensitive):
+- `username` (required)
+- `full_name` (required)
+- `email` (optional)
+- `phone` (optional)
+- `password` (optional, default used if missing)
+
+### 4) Import students from Excel to PostgreSQL
+```bash
+python import_students_postgres.py --excel "students.xlsx" --host localhost --port 5432 --db library_db --user postgres --password your_password
+```
+
+### 5) Notes
+- The script creates `users` table if it does not exist.
+- Existing students with same username are updated (`ON CONFLICT`).
+- Passwords are hashed using SHA-256, same style as the current project.
+- Missing passwords automatically use default: `student123`.
+
 ## 📖 How to Use
 
 ### For Admin/Librarian:
