@@ -5,7 +5,7 @@ Features: Multi-user roles, GUI, Database, Fine calculation, Reports, Search fil
 
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
-import sqlite3
+import psycopg2
 from datetime import datetime, timedelta
 import json
 import hashlib
@@ -15,103 +15,119 @@ import string
 class LibraryDatabase:
     """Handle all database operations"""
     
-    def __init__(self, db_name="library.db"):
-        self.db_name = db_name
+    def __init__(self, host="localhost", port=5432, database="library_db", user="postgres", password="system"):
+        self.host = host
+        self.port = port
+        self.database = database
+        self.user = user
+        self.password = password
         self.init_database()
     
     def get_connection(self):
-        return sqlite3.connect(self.db_name)
+        return psycopg2.connect(
+            host=self.host,
+            port=self.port,
+            database=self.database,
+            user=self.user,
+            password=self.password
+        )
     
     def init_database(self):
         """Initialize database with all required tables"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        # Users table (Admin, Librarian, Student)
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                role TEXT NOT NULL,
-                full_name TEXT NOT NULL,
-                email TEXT,
-                phone TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
-        # Books table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS books (
-                book_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                isbn TEXT UNIQUE,
-                title TEXT NOT NULL,
-                author TEXT NOT NULL,
-                category TEXT,
-                publisher TEXT,
-                year INTEGER,
-                total_copies INTEGER DEFAULT 1,
-                available_copies INTEGER DEFAULT 1,
-                shelf_location TEXT,
-                description TEXT,
-                added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
-        # Issue records table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS issue_records (
-                issue_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                book_id INTEGER,
-                user_id INTEGER,
-                issue_date DATE NOT NULL,
-                due_date DATE NOT NULL,
-                return_date DATE,
-                fine_amount REAL DEFAULT 0,
-                fine_paid BOOLEAN DEFAULT 0,
-                status TEXT DEFAULT 'issued',
-                FOREIGN KEY (book_id) REFERENCES books (book_id),
-                FOREIGN KEY (user_id) REFERENCES users (user_id)
-            )
-        ''')
-        
-        # Reservations table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS reservations (
-                reservation_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                book_id INTEGER,
-                user_id INTEGER,
-                reservation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                status TEXT DEFAULT 'active',
-                FOREIGN KEY (book_id) REFERENCES books (book_id),
-                FOREIGN KEY (user_id) REFERENCES users (user_id)
-            )
-        ''')
-        
-        # Activity log table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS activity_log (
-                log_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                action TEXT,
-                details TEXT,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users (user_id)
-            )
-        ''')
-        
-        # Create default admin if not exists
-        cursor.execute("SELECT * FROM users WHERE role='admin'")
-        if not cursor.fetchone():
-            admin_password = self.hash_password("admin123")
+        try:
+            # Users table (Admin, Librarian, Student)
             cursor.execute('''
-                INSERT INTO users (username, password, role, full_name, email)
-                VALUES (?, ?, ?, ?, ?)
-            ''', ("admin", admin_password, "admin", "System Administrator", "admin@library.com"))
-        
-        conn.commit()
-        conn.close()
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id SERIAL PRIMARY KEY,
+                    username TEXT UNIQUE NOT NULL,
+                    password TEXT NOT NULL,
+                    role TEXT NOT NULL,
+                    full_name TEXT NOT NULL,
+                    email TEXT,
+                    phone TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Books table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS books (
+                    book_id SERIAL PRIMARY KEY,
+                    isbn TEXT UNIQUE,
+                    title TEXT NOT NULL,
+                    author TEXT NOT NULL,
+                    category TEXT,
+                    publisher TEXT,
+                    year INTEGER,
+                    total_copies INTEGER DEFAULT 1,
+                    available_copies INTEGER DEFAULT 1,
+                    shelf_location TEXT,
+                    description TEXT,
+                    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Issue records table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS issue_records (
+                    issue_id SERIAL PRIMARY KEY,
+                    book_id INTEGER,
+                    user_id INTEGER,
+                    issue_date DATE NOT NULL,
+                    due_date DATE NOT NULL,
+                    return_date DATE,
+                    fine_amount REAL DEFAULT 0,
+                    fine_paid BOOLEAN DEFAULT false,
+                    status TEXT DEFAULT 'issued',
+                    FOREIGN KEY (book_id) REFERENCES books (book_id),
+                    FOREIGN KEY (user_id) REFERENCES users (user_id)
+                )
+            ''')
+            
+            # Reservations table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS reservations (
+                    reservation_id SERIAL PRIMARY KEY,
+                    book_id INTEGER,
+                    user_id INTEGER,
+                    reservation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    status TEXT DEFAULT 'active',
+                    FOREIGN KEY (book_id) REFERENCES books (book_id),
+                    FOREIGN KEY (user_id) REFERENCES users (user_id)
+                )
+            ''')
+            
+            # Activity log table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS activity_log (
+                    log_id SERIAL PRIMARY KEY,
+                    user_id INTEGER,
+                    action TEXT,
+                    details TEXT,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (user_id)
+                )
+            ''')
+            
+            # Create default admin if not exists
+            cursor.execute("SELECT * FROM users WHERE role='admin'")
+            if not cursor.fetchone():
+                admin_password = self.hash_password("admin123")
+                cursor.execute('''
+                    INSERT INTO users (username, password, role, full_name, email)
+                    VALUES (%s, %s, %s, %s, %s)
+                ''', ("admin", admin_password, "admin", "System Administrator", "admin@library.com"))
+            
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            print(f"Database initialization error: {e}")
+        finally:
+            cursor.close()
+            conn.close()
     
     def hash_password(self, password):
         """Hash password using SHA-256"""
@@ -121,12 +137,15 @@ class LibraryDatabase:
         """Log user activity"""
         conn = self.get_connection()
         cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO activity_log (user_id, action, details)
-            VALUES (?, ?, ?)
-        ''', (user_id, action, details))
-        conn.commit()
-        conn.close()
+        try:
+            cursor.execute('''
+                INSERT INTO activity_log (user_id, action, details)
+                VALUES (%s, %s, %s)
+            ''', (user_id, action, details))
+            conn.commit()
+        finally:
+            cursor.close()
+            conn.close()
 
 
 class LibraryManagementSystem:
@@ -162,7 +181,13 @@ class LibraryManagementSystem:
         self.root.configure(bg=self.colors['app_bg'])
         self.setup_modern_styles()
         
-        self.db = LibraryDatabase()
+        self.db = LibraryDatabase(
+            host="localhost",
+            port=5432,
+            database="library_db",
+            user="postgres",
+            password="system"
+        )
         self.current_user = None
         
         # Fine rate per day
@@ -346,7 +371,7 @@ class LibraryManagementSystem:
         hashed_password = self.db.hash_password(password)
         cursor.execute('''
             SELECT user_id, username, role, full_name FROM users 
-            WHERE username=? AND password=?
+            WHERE username=%s AND password=%s
         ''', (username, hashed_password))
         
         user = cursor.fetchone()
@@ -419,7 +444,7 @@ class LibraryManagementSystem:
             hashed_password = self.db.hash_password(data['password'])
             cursor.execute('''
                 INSERT INTO users (username, password, role, full_name, email, phone)
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s)
             ''', (data['username'], hashed_password, 'student', 
                   data['full_name'], data['email'], data['phone']))
             conn.commit()
@@ -487,6 +512,7 @@ class LibraryManagementSystem:
                 ("📤 Issue Book", self.show_issue_book),
                 ("📥 Return Book", self.show_return_book),
                 ("👥 Manage Users", self.show_manage_users),
+                ("📚 Issued Books", self.show_issued_books),
                 ("📊 Reports", self.show_reports),
                 ("📜 Activity Log", self.show_activity_log),
             ]
@@ -660,7 +686,7 @@ class LibraryManagementSystem:
             search_term = f"%{self.search_entry.get().strip()}%"
             search_field = self.search_by.get().lower()
             
-            query = f"SELECT * FROM books WHERE {search_field} LIKE ? ORDER BY title"
+            query = f"SELECT * FROM books WHERE {search_field} ILIKE %s ORDER BY title"
             cursor.execute(query, (search_term,))
         
         books = cursor.fetchall()
@@ -706,7 +732,7 @@ class LibraryManagementSystem:
             SELECT b.title, b.author, i.issue_date, i.due_date, i.fine_amount, i.status
             FROM issue_records i
             JOIN books b ON i.book_id = b.book_id
-            WHERE i.user_id = ? AND i.status = 'issued'
+            WHERE i.user_id = %s AND i.status = 'issued'
             ORDER BY i.issue_date DESC
         ''', (self.current_user['user_id'],))
         
@@ -803,7 +829,7 @@ class LibraryManagementSystem:
             cursor.execute('''
                 INSERT INTO books (isbn, title, author, category, publisher, year, 
                                  total_copies, available_copies, shelf_location, description)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ''', (data['isbn'], data['title'], data['author'], data['category'],
                   data['publisher'], data['year'], total_copies, total_copies,
                   data['shelf_location'], data['description']))
@@ -881,7 +907,7 @@ class LibraryManagementSystem:
         cursor = conn.cursor()
         
         # Get user
-        cursor.execute("SELECT user_id, full_name FROM users WHERE username=?", (username,))
+        cursor.execute("SELECT user_id, full_name FROM users WHERE username=%s", (username,))
         user = cursor.fetchone()
         
         if not user:
@@ -892,7 +918,7 @@ class LibraryManagementSystem:
         # Get book
         cursor.execute('''
             SELECT book_id, title, available_copies FROM books 
-            WHERE book_id=? OR isbn=?
+            WHERE book_id=%s OR isbn=%s
         ''', (book_identifier, book_identifier))
         book = cursor.fetchone()
         
@@ -912,13 +938,13 @@ class LibraryManagementSystem:
         
         cursor.execute('''
             INSERT INTO issue_records (book_id, user_id, issue_date, due_date, status)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s)
         ''', (book[0], user[0], issue_date, due_date, 'issued'))
         
         # Update available copies
         cursor.execute('''
             UPDATE books SET available_copies = available_copies - 1
-            WHERE book_id = ?
+            WHERE book_id = %s
         ''', (book[0],))
         
         conn.commit()
@@ -1010,7 +1036,7 @@ class LibraryManagementSystem:
             FROM issue_records i
             JOIN books b ON i.book_id = b.book_id
             JOIN users u ON i.user_id = u.user_id
-            WHERE i.issue_id = ? AND i.status = 'issued'
+            WHERE i.issue_id = %s AND i.status = 'issued'
         ''', (issue_id,))
         
         record = cursor.fetchone()
@@ -1029,14 +1055,14 @@ class LibraryManagementSystem:
         return_date = datetime.now().date()
         cursor.execute('''
             UPDATE issue_records 
-            SET return_date = ?, fine_amount = ?, status = 'returned'
-            WHERE issue_id = ?
+            SET return_date = %s, fine_amount = %s, status = 'returned'
+            WHERE issue_id = %s
         ''', (return_date, fine, issue_id))
         
         # Update available copies
         cursor.execute('''
             UPDATE books SET available_copies = available_copies + 1
-            WHERE book_id = ?
+            WHERE book_id = %s
         ''', (record[1],))
         
         conn.commit()
@@ -1120,7 +1146,7 @@ class LibraryManagementSystem:
         # Check if book exists and is unavailable
         cursor.execute('''
             SELECT book_id, title, available_copies FROM books
-            WHERE book_id = ?
+            WHERE book_id = %s
         ''', (book_id,))
         
         book = cursor.fetchone()
@@ -1138,7 +1164,7 @@ class LibraryManagementSystem:
         # Check if already reserved
         cursor.execute('''
             SELECT * FROM reservations
-            WHERE book_id = ? AND user_id = ? AND status = 'active'
+            WHERE book_id = %s AND user_id = ? AND status = 'active'
         ''', (book_id, self.current_user['user_id']))
         
         if cursor.fetchone():
@@ -1149,7 +1175,7 @@ class LibraryManagementSystem:
         # Create reservation
         cursor.execute('''
             INSERT INTO reservations (book_id, user_id, status)
-            VALUES (?, ?, 'active')
+            VALUES (%s, %s, 'active')
         ''', (book_id, self.current_user['user_id']))
         
         conn.commit()
@@ -1162,12 +1188,23 @@ class LibraryManagementSystem:
         self.show_reserve_book()
     
     def show_manage_users(self):
-        """Show user management interface"""
+        """Show user management interface with search"""
         for widget in self.content_area.winfo_children():
             widget.destroy()
         
         tk.Label(self.content_area, text="👥 Manage Users", font=("Segoe UI", 19, "bold"),
             bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
+        
+        # Search frame
+        search_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
+        search_frame.pack(fill="x", padx=20, pady=10)
+        
+        tk.Label(search_frame, text="Search:", bg=self.colors['page_bg'], 
+                fg=self.colors['text_dark'], font=("Segoe UI", 11, "bold")).pack(side="left", padx=5)
+        
+        search_entry = tk.Entry(search_frame, width=40, font=("Segoe UI", 10),
+                               bg=self.colors['input_bg'], fg=self.colors['text_dark'])
+        search_entry.pack(side="left", padx=5)
         
         # Users table
         table_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
@@ -1183,15 +1220,169 @@ class LibraryManagementSystem:
         tree.column("Full Name", width=200)
         tree.pack(fill="both", expand=True)
         
-        # Fetch users
-        conn = self.db.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT user_id, username, full_name, role, email, phone FROM users")
-        users = cursor.fetchall()
-        conn.close()
+        def populate_users(search_term=""):
+            """Populate tree with users, optionally filtered by search term"""
+            tree.delete(*tree.get_children())
+            
+            conn = self.db.get_connection()
+            cursor = conn.cursor()
+            
+            if search_term:
+                search_term = f"%{search_term}%"
+                cursor.execute('''
+                    SELECT user_id, username, full_name, role, email, phone FROM users 
+                    WHERE username ILIKE %s OR full_name ILIKE %s OR email ILIKE %s OR phone ILIKE %s
+                    ORDER BY full_name
+                ''', (search_term, search_term, search_term, search_term))
+            else:
+                cursor.execute("SELECT user_id, username, full_name, role, email, phone FROM users ORDER BY full_name")
+            
+            users = cursor.fetchall()
+            conn.close()
+            
+            for user in users:
+                tree.insert("", "end", values=user)
+            
+            count_label.config(text=f"Total: {len(users)} user(s)")
         
-        for user in users:
-            tree.insert("", "end", values=user)
+        def on_search():
+            """Handle search"""
+            search_text = search_entry.get().strip()
+            populate_users(search_text)
+        
+        def on_clear():
+            """Clear search"""
+            search_entry.delete(0, tk.END)
+            populate_users()
+        
+        # Search buttons
+        button_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
+        button_frame.pack(fill="x", padx=20, pady=5)
+        
+        tk.Button(button_frame, text="🔍 Search", command=on_search,
+                 bg=self.colors['accent'], fg="white", font=("Segoe UI", 10, "bold"),
+                 padx=20, pady=5, relief="flat", cursor="hand2").pack(side="left", padx=5)
+        
+        tk.Button(button_frame, text="❌ Clear", command=on_clear,
+                 bg=self.colors['muted'], fg="white", font=("Segoe UI", 10, "bold"),
+                 padx=20, pady=5, relief="flat", cursor="hand2").pack(side="left", padx=5)
+        
+        count_label = tk.Label(button_frame, text="Total: 0 user(s)", 
+                              bg=self.colors['page_bg'], fg=self.colors['text_dark'],
+                              font=("Segoe UI", 10))
+        count_label.pack(side="right", padx=10)
+        
+        # Search on Enter key
+        search_entry.bind('<Return>', lambda e: on_search())
+        
+        # Initial populate
+        populate_users()
+
+    def show_issued_books(self):
+        """Show all currently issued books for admin and librarian"""
+        for widget in self.content_area.winfo_children():
+            widget.destroy()
+
+        tk.Label(self.content_area, text="📚 Issued Books", font=("Segoe UI", 19, "bold"),
+            bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
+
+        # Search frame
+        search_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
+        search_frame.pack(fill="x", padx=20, pady=10)
+
+        tk.Label(search_frame, text="Search:", bg=self.colors['page_bg'],
+                 fg=self.colors['text_dark'], font=("Segoe UI", 11, "bold")).pack(side="left", padx=5)
+
+        search_entry = tk.Entry(search_frame, width=40, font=("Segoe UI", 10),
+                               bg=self.colors['input_bg'], fg=self.colors['text_dark'])
+        search_entry.pack(side="left", padx=5)
+
+        count_label = tk.Label(search_frame, text="Total: 0 issued book(s)",
+                              bg=self.colors['page_bg'], fg=self.colors['text_dark'],
+                              font=("Segoe UI", 10, "bold"))
+        count_label.pack(side="right", padx=10)
+
+        # Table
+        table_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
+        table_frame.pack(fill="both", expand=True, padx=20, pady=10)
+
+        columns = ("Issue ID", "Student", "Student ID", "Book Title", "Category", "Issue Date", "Due Date", "Fine", "Status")
+        tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=18, style="Modern.Treeview")
+
+        for col in columns:
+            tree.heading(col, text=col)
+            tree.column(col, width=120)
+
+        tree.column("Book Title", width=240)
+        tree.column("Student", width=180)
+        tree.pack(fill="both", expand=True)
+
+        def populate_issues(search_term=""):
+            tree.delete(*tree.get_children())
+
+            conn = self.db.get_connection()
+            cursor = conn.cursor()
+
+            base_query = '''
+                SELECT i.issue_id, u.full_name, u.username, b.title, b.category,
+                       i.issue_date, i.due_date, i.fine_amount, i.status
+                FROM issue_records i
+                JOIN users u ON i.user_id = u.user_id
+                JOIN books b ON i.book_id = b.book_id
+                WHERE i.status = 'issued'
+            '''
+            params = []
+
+            if search_term:
+                base_query += '''
+                    AND (
+                        u.full_name ILIKE %s OR
+                        u.username ILIKE %s OR
+                        b.title ILIKE %s OR
+                        b.category ILIKE %s
+                    )
+                '''
+                like_term = f"%{search_term}%"
+                params = [like_term, like_term, like_term, like_term]
+
+            base_query += " ORDER BY i.issue_date DESC, u.full_name ASC"
+            cursor.execute(base_query, tuple(params))
+            records = cursor.fetchall()
+            conn.close()
+
+            for record in records:
+                issue_id, student_name, username, book_title, category, issue_date, due_date, fine_amount, status = record
+                due_dt = datetime.strptime(str(due_date), "%Y-%m-%d")
+                days_overdue = max(0, (datetime.now() - due_dt).days)
+                fine = days_overdue * self.fine_per_day if days_overdue > 0 else float(fine_amount or 0)
+                tree.insert("", "end", values=(
+                    issue_id, student_name, username, book_title, category,
+                    issue_date, due_date, f"₹{fine:.2f}", status
+                ))
+
+            count_label.config(text=f"Total: {len(records)} issued book(s)")
+
+        def on_search():
+            populate_issues(search_entry.get().strip())
+
+        def on_clear():
+            search_entry.delete(0, tk.END)
+            populate_issues()
+
+        button_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
+        button_frame.pack(fill="x", padx=20, pady=5)
+
+        self.create_modern_button(button_frame, "Search", on_search,
+                                  variant="primary", font=("Segoe UI", 10, "bold"),
+                                  padx=18, pady=7).pack(side="left", padx=5)
+
+        self.create_modern_button(button_frame, "Clear", on_clear,
+                                  variant="neutral", font=("Segoe UI", 10),
+                                  padx=16, pady=7).pack(side="left", padx=5)
+
+        search_entry.bind('<Return>', lambda e: on_search())
+
+        populate_issues()
     
     def show_reports(self):
         """Show various reports"""
