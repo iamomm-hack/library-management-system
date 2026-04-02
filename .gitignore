@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Local databases
+library.db
+*.sqlite
+*.sqlite3
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Student/real data files (never commit)
+*.xlsx
+*.xls
+*.csv
+
+# OS/editor
+.DS_Store
+Thumbs.db
