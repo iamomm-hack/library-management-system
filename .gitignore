@@ -21,3 +21,22 @@ library.db
 # OS/editor
 .DS_Store
 Thumbs.db
+
+# Temporary/generated setup guides (non-essential)
+DEPLOYMENT_GUIDE.md
+SIMPLE_SETUP_HINDI.md
+SETUP_GUIDE_ENGLISH.txt
+QUICK_CHECKLIST.txt
+EASY_SETUP.txt
+WEB_VERSION_SETUP.txt
+CLOUD_DATABASE_SETUP.txt
+RAILWAY_CLOUD_SETUP.txt
+CHOOSE_YOUR_SETUP.txt
+WEB_DEPLOYMENT_CLOUD.txt
+COMPLETE_ROADMAP.txt
+
+# Generated build/distribution artifacts
+build/
+dist/
+LibrarySystem.spec
+LibraryApp_*/
