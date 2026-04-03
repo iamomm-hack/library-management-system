@@ -4,13 +4,14 @@ Library Management System - Web Version (Flask)
 Simple website instead of desktop app
 """
 
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from flask_cors import CORS
 import psycopg2
 import psycopg2.extras
-from datetime import datetime, timedelta
+from datetime import datetime
 import hashlib
 import os
+from functools import wraps
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,6 +19,46 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this'
 CORS(app)
+
+
+def login_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return fn(*args, **kwargs)
+    return wrapper
+
+
+def staff_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if session.get('role') not in ['admin', 'librarian']:
+            return redirect(url_for('dashboard'))
+        return fn(*args, **kwargs)
+    return wrapper
+
+
+def rows_to_dicts(rows):
+    return [dict(r) for r in rows]
+
+
+def log_activity(action, details):
+    if 'user_id' not in session:
+        return
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            "INSERT INTO activity_log (user_id, action, details) VALUES (%s, %s, %s)",
+            (session['user_id'], action, details),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+    finally:
+        cur.close()
+        conn.close()
 
 # Database connection
 def get_db_connection():
@@ -45,11 +86,11 @@ def login():
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         
-        # Hash password
+        # Stored passwords are SHA-256 hashes in users.password
         password_hash = hashlib.sha256(password.encode()).hexdigest()
-        
-        cur.execute("SELECT * FROM users WHERE username=%s AND password_hash=%s", 
-                   (username, password_hash))
+
+        cur.execute("SELECT * FROM users WHERE username=%s AND password=%s", 
+               (username, password_hash))
         user = cur.fetchone()
         
         if user:
@@ -60,6 +101,7 @@ def login():
             
             cur.close()
             conn.close()
+            log_activity('login', 'User logged in successfully')
             
             return redirect(url_for('dashboard'))
         
@@ -71,10 +113,8 @@ def login():
 
 # DASHBOARD
 @app.route('/dashboard')
+@login_required
 def dashboard():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
@@ -103,6 +143,7 @@ def dashboard():
 
 # SEARCH BOOKS
 @app.route('/api/search-books')
+@login_required
 def search_books():
     query = request.args.get('q', '')
     
@@ -116,7 +157,7 @@ def search_books():
         LIMIT 20
     """, (f'%{query}%', f'%{query}%', f'%{query}%'))
     
-    books = cur.fetchall()
+    books = rows_to_dicts(cur.fetchall())
     cur.close()
     conn.close()
     
@@ -124,58 +165,237 @@ def search_books():
 
 # SEARCH USERS (Admin only)
 @app.route('/api/search-users')
+@login_required
+@staff_required
 def search_users():
-    if session.get('role') not in ['admin', 'librarian']:
-        return jsonify({'error': 'Unauthorized'}), 403
-    
     query = request.args.get('q', '')
     
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
     cur.execute("""
-        SELECT user_id, full_name, email, phone, enrollment_number 
+        SELECT user_id, full_name, email, phone, username AS enrollment_number
         FROM users 
-        WHERE full_name ILIKE %s OR enrollment_number ILIKE %s
-        LIMIT 20
+        WHERE role='student' AND (full_name ILIKE %s OR username ILIKE %s)
+        ORDER BY user_id DESC
+        LIMIT 25
     """, (f'%{query}%', f'%{query}%'))
     
-    users = cur.fetchall()
+    users = rows_to_dicts(cur.fetchall())
     cur.close()
     conn.close()
     
     return jsonify(users)
 
-# ISSUE BOOK
-@app.route('/issue-book', methods=['GET', 'POST'])
-def issue_book():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
-    if session['role'] not in ['admin', 'librarian']:
-        return redirect(url_for('dashboard'))
-    
+
+@app.route('/my-books')
+@login_required
+def my_books():
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT i.issue_id, b.title, b.author, i.issue_date, i.due_date, i.return_date, i.status
+        FROM issue_records i
+        JOIN books b ON b.book_id = i.book_id
+        WHERE i.user_id = %s
+        ORDER BY i.issue_id DESC
+        LIMIT 100
+        """,
+        (session['user_id'],),
+    )
+    records = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('my_books.html', records=records, user=session)
+
+
+@app.route('/manage-users')
+@login_required
+@staff_required
+def manage_users():
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT user_id, full_name, username, email, phone, role
+        FROM users
+        ORDER BY user_id DESC
+        LIMIT 200
+        """
+    )
+    users = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('manage_users.html', users=users, user=session)
+
+
+@app.route('/issued-books')
+@login_required
+@staff_required
+def issued_books():
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT i.issue_id, u.full_name, u.username, b.title, i.issue_date, i.due_date
+        FROM issue_records i
+        JOIN users u ON u.user_id = i.user_id
+        JOIN books b ON b.book_id = i.book_id
+        WHERE i.status = 'issued'
+        ORDER BY i.issue_id DESC
+        LIMIT 300
+        """
+    )
+    records = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('issued_books.html', records=records, user=session)
+
+
+@app.route('/reports')
+@login_required
+@staff_required
+def reports():
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("SELECT COUNT(*) AS c FROM users WHERE role='student'")
+    students = cur.fetchone()['c']
+    cur.execute("SELECT COUNT(*) AS c FROM books")
+    books = cur.fetchone()['c']
+    cur.execute("SELECT COUNT(*) AS c FROM issue_records WHERE status='issued'")
+    active_issues = cur.fetchone()['c']
+    cur.execute("SELECT COUNT(*) AS c FROM issue_records WHERE status='returned'")
+    returned = cur.fetchone()['c']
+    cur.execute("SELECT COALESCE(SUM(fine_amount), 0) AS total_fine FROM issue_records")
+    total_fine = cur.fetchone()['total_fine']
+    cur.close()
+    conn.close()
+
+    return render_template(
+        'reports.html',
+        students=students,
+        books=books,
+        active_issues=active_issues,
+        returned=returned,
+        total_fine=total_fine,
+        user=session,
+    )
+
+
+@app.route('/activity-log')
+@login_required
+@staff_required
+def activity_log():
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    records = []
+    try:
+        cur.execute(
+            """
+            SELECT a.log_id, a.action, a.details, a.timestamp, u.full_name
+            FROM activity_log a
+            LEFT JOIN users u ON u.user_id = a.user_id
+            ORDER BY a.log_id DESC
+            LIMIT 200
+            """
+        )
+        records = cur.fetchall()
+    except Exception:
+        records = []
+    finally:
+        cur.close()
+        conn.close()
+
+    return render_template('activity_log.html', records=records, user=session)
+
+
+@app.route('/add-book', methods=['GET', 'POST'])
+@login_required
+@staff_required
+def add_book():
     if request.method == 'POST':
-        user_id = request.form.get('user_id')
-        book_id = request.form.get('book_id')
-        
+        title = request.form.get('title', '').strip()
+        author = request.form.get('author', '').strip()
+        category = request.form.get('category', '').strip()
+        isbn = request.form.get('isbn', '').strip() or None
+        total_copies = int(request.form.get('total_copies', '1') or 1)
+
+        if not title or not author:
+            flash('Title and Author are required.', 'error')
+            return render_template('add_book.html', user=session)
+
         conn = get_db_connection()
         cur = conn.cursor()
+        try:
+            cur.execute(
+                """
+                INSERT INTO books (isbn, title, author, category, total_copies, available_copies)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """,
+                (isbn, title, author, category, total_copies, total_copies),
+            )
+            conn.commit()
+            log_activity('add_book', f'Added book: {title}')
+            flash('Book added successfully.', 'success')
+            return redirect(url_for('add_book'))
+        except Exception as e:
+            conn.rollback()
+            flash(f'Failed to add book: {e}', 'error')
+        finally:
+            cur.close()
+            conn.close()
+
+    return render_template('add_book.html', user=session)
+
+# ISSUE BOOK
+@app.route('/issue-book', methods=['GET', 'POST'])
+@login_required
+@staff_required
+def issue_book():
+    if request.method == 'POST':
+        user_input = request.form.get('user_id', '').strip()
+        book_input = request.form.get('book_id', '').strip()
+        
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         
         try:
+            if user_input.isdigit():
+                cur.execute("SELECT user_id FROM users WHERE user_id=%s", (int(user_input),))
+            else:
+                cur.execute("SELECT user_id FROM users WHERE username=%s", (user_input,))
+            user_row = cur.fetchone()
+
+            if not user_row:
+                raise ValueError('User not found. Use valid user ID or username.')
+
+            if book_input.isdigit():
+                cur.execute("SELECT book_id, available_copies FROM books WHERE book_id=%s", (int(book_input),))
+            else:
+                cur.execute("SELECT book_id, available_copies FROM books WHERE isbn=%s", (book_input,))
+            book_row = cur.fetchone()
+
+            if not book_row:
+                raise ValueError('Book not found. Use valid book ID or ISBN.')
+
+            if int(book_row['available_copies']) <= 0:
+                raise ValueError('No available copies for this book.')
+
             # Create issue record
             cur.execute("""
                 INSERT INTO issue_records (user_id, book_id, issue_date, due_date, status)
                 VALUES (%s, %s, CURRENT_DATE, CURRENT_DATE + INTERVAL '14 days', 'issued')
-            """, (user_id, book_id))
+            """, (user_row['user_id'], book_row['book_id']))
             
             # Update book stock
             cur.execute("""
                 UPDATE books SET available_copies = available_copies - 1 
                 WHERE book_id = %s AND available_copies > 0
-            """, (book_id,))
+            """, (book_row['book_id'],))
             
             conn.commit()
+            log_activity('issue_book', f"Issued book_id={book_row['book_id']} to user_id={user_row['user_id']}")
             cur.close()
             conn.close()
             
@@ -190,13 +410,9 @@ def issue_book():
 
 # RETURN BOOK
 @app.route('/return-book', methods=['GET', 'POST'])
+@login_required
+@staff_required
 def return_book():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
-    if session['role'] not in ['admin', 'librarian']:
-        return redirect(url_for('dashboard'))
-    
     if request.method == 'POST':
         issue_id = request.form.get('issue_id')
         
@@ -225,6 +441,7 @@ def return_book():
                 """, (book_id,))
                 
                 conn.commit()
+                log_activity('return_book', f'Returned issue_id={issue_id}')
             
             cur.close()
             conn.close()
@@ -239,7 +456,9 @@ def return_book():
 
 # LOGOUT
 @app.route('/logout')
+@login_required
 def logout():
+    log_activity('logout', 'User logged out')
     session.clear()
     return redirect(url_for('login'))
 
