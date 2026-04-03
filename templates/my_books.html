@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container page-shell">
+    <div class="card">
+        <div class="page-head">
+            <h2>My Books</h2>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+        </div>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Issue ID</th>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Return Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in records %}
+                    <tr>
+                        <td>{{ r.issue_id }}</td>
+                        <td>{{ r.title }}</td>
+                        <td>{{ r.author }}</td>
+                        <td>{{ r.issue_date }}</td>
+                        <td>{{ r.due_date }}</td>
+                        <td>{{ r.return_date or '-' }}</td>
+                        <td>{{ r.status }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7">No records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

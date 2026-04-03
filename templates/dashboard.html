@@ -1,100 +1,226 @@
 {% extends "base.html" %}
 
+{% block body_class %}dashboard-page{% endblock %}
+
+{% block navbar %}{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h2 style="margin-bottom: 2rem; color: #2c3e50;">Dashboard</h2>
-    
-    <!-- Stats -->
-    <div class="stats">
-        <div class="stat-card">
-            <h3>Total Students</h3>
-            <div class="number">{{ students }}</div>
-        </div>
-        <div class="stat-card">
-            <h3>Total Books</h3>
-            <div class="number">{{ books }}</div>
-        </div>
-        <div class="stat-card">
-            <h3>Books Available</h3>
-            <div class="number">{{ available }}</div>
-        </div>
-        <div class="stat-card">
-            <h3>Active Issues</h3>
-            <div class="number">{{ issued }}</div>
-        </div>
-    </div>
-    
-    <!-- Actions -->
-    {% if user.role in ['admin', 'librarian'] %}
-    <div class="card">
-        <h3 style="margin-bottom: 1.5rem;">Quick Actions</h3>
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <a href="{{ url_for('issue_book') }}" class="btn btn-success">+ Issue Book</a>
-            <a href="{{ url_for('return_book') }}" class="btn btn-primary">✓ Return Book</a>
-        </div>
-    </div>
-    {% endif %}
-    
-    <!-- Search Books -->
-    <div class="card">
-        <h3 style="margin-bottom: 1rem;">Search Books</h3>
-        <input type="text" id="bookSearch" placeholder="Search by title, author, or ISBN..." 
-               style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px;">
-        <div id="bookResults" style="margin-top: 1rem;"></div>
-    </div>
-    
-    <!-- Search Users (Admin/Librarian only) -->
-    {% if user.role in ['admin', 'librarian'] %}
-    <div class="card">
-        <h3 style="margin-bottom: 1rem;">Search Users</h3>
-        <input type="text" id="userSearch" placeholder="Search by name or enrollment number..." 
-               style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px;">
-        <div id="userResults" style="margin-top: 1rem;"></div>
-    </div>
-    {% endif %}
+<div class="dash-layout" id="dashLayout">
+    <aside class="dash-sidebar">
+        <div class="dash-logo">LIB</div>
+        <h3 class="menu-title">Menu</h3>
+        <nav class="side-menu">
+            <a href="{{ url_for('dashboard') }}" class="side-link active">🏠 Home</a>
+            <a href="{{ url_for('dashboard') }}" class="side-link" id="btnSearchBooks">🔎 Search Books</a>
+            <a href="{{ url_for('my_books') }}" class="side-link">📖 My Books</a>
+            {% if user.role in ['admin', 'librarian'] %}
+            <a href="{{ url_for('add_book') }}" class="side-link">➕ Add Book</a>
+            <a href="{{ url_for('issue_book') }}" class="side-link">📤 Issue Book</a>
+            <a href="{{ url_for('return_book') }}" class="side-link">📥 Return Book</a>
+            <a href="{{ url_for('manage_users') }}" class="side-link">👥 Manage Users</a>
+            <a href="{{ url_for('issued_books') }}" class="side-link">📚 Issued Books</a>
+            <a href="{{ url_for('reports') }}" class="side-link">📊 Reports</a>
+            <a href="{{ url_for('activity_log') }}" class="side-link">🧾 Activity Log</a>
+            {% endif %}
+        </nav>
+    </aside>
+
+    <main class="dash-main">
+        <header class="dash-topbar">
+            <div class="top-left">
+                <button class="menu-btn" title="Menu">☰</button>
+                <h1>Dashboard</h1>
+            </div>
+            <div class="top-search-wrap">
+                <input type="text" id="globalSearch" class="top-search" placeholder="Search books or users..." title="Global search">
+            </div>
+            <div class="top-right">
+                <button id="themeToggle" class="theme-toggle" title="Toggle theme">◐</button>
+                <a href="{{ url_for('logout') }}" class="logout-pill">Logout</a>
+            </div>
+        </header>
+
+        <section class="hello-card">
+            <h2>Hello, <span>{{ user.full_name }}</span></h2>
+            <p id="currentDateTime"></p>
+            {% if user.role in ['admin', 'librarian'] %}
+            <div class="quick-actions">
+                <a href="{{ url_for('issue_book') }}" class="btn btn-success">Issue Book</a>
+                <a href="{{ url_for('return_book') }}" class="btn btn-primary">Return Book</a>
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="dash-stats-grid">
+            <div class="mini-stat">
+                <div>
+                    <p>Total Students</p>
+                    <h3>{{ students }}</h3>
+                </div>
+                <span>👤</span>
+            </div>
+            <div class="mini-stat">
+                <div>
+                    <p>Total Books</p>
+                    <h3>{{ books }}</h3>
+                </div>
+                <span>📚</span>
+            </div>
+            <div class="mini-stat">
+                <div>
+                    <p>Available Books</p>
+                    <h3>{{ available }}</h3>
+                </div>
+                <span>✅</span>
+            </div>
+            <div class="mini-stat">
+                <div>
+                    <p>Active Issues</p>
+                    <h3>{{ issued }}</h3>
+                </div>
+                <span>🕘</span>
+            </div>
+        </section>
+
+        <section class="dual-panels">
+            {% if user.role in ['admin', 'librarian'] %}
+            <article class="panel-card">
+                <div class="panel-head">
+                    <h3>Users List</h3>
+                </div>
+                <div class="table-wrap" id="userResults"></div>
+            </article>
+            {% endif %}
+
+            <article class="panel-card">
+                <div class="panel-head">
+                    <h3>Books List</h3>
+                </div>
+                <div class="table-wrap" id="bookResults"></div>
+            </article>
+        </section>
+
+        <section class="choices-panel">
+            <h3>Top Choices</h3>
+            <div class="choices-grid">
+                <div class="choice-book">
+                    <img src="https://images.unsplash.com/photo-1541963463532-d68292c34b19?auto=format&fit=crop&w=400&q=60" alt="Book cover 1">
+                    <p>Design Thinking</p>
+                </div>
+                <div class="choice-book">
+                    <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=60" alt="Book cover 2">
+                    <p>Clean Code</p>
+                </div>
+                <div class="choice-book">
+                    <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=400&q=60" alt="Book cover 3">
+                    <p>System Design</p>
+                </div>
+                <div class="choice-book">
+                    <img src="https://images.unsplash.com/photo-1491841550275-ad7854e35ca6?auto=format&fit=crop&w=400&q=60" alt="Book cover 4">
+                    <p>Data Structures</p>
+                </div>
+                <div class="choice-book">
+                    <img src="https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=400&q=60" alt="Book cover 5">
+                    <p>Algorithms</p>
+                </div>
+            </div>
+        </section>
+    </main>
 </div>
 
 <script>
-// Search Books
-document.getElementById('bookSearch').addEventListener('input', function() {
-    if (this.value.length > 2) {
-        fetch(`/api/search-books?q=${this.value}`)
-            .then(r => r.json())
-            .then(books => {
-                const html = '<table>' +
-                    '<thead><tr><th>Title</th><th>Author</th><th>Category</th><th>Available</th></tr></thead><tbody>' +
-                    books.map(b => `<tr>
-                        <td>${b.title}</td>
-                        <td>${b.author}</td>
-                        <td>${b.category}</td>
-                        <td>${b.available_copies}</td>
-                    </tr>`).join('') +
-                    '</tbody></table>';
-                document.getElementById('bookResults').innerHTML = html;
-            });
-    }
-});
+document.addEventListener('DOMContentLoaded', function () {
+    const dateNode = document.getElementById('currentDateTime');
+    const now = new Date();
+    dateNode.textContent = now.toLocaleDateString(undefined, {
+        month: 'short', day: 'numeric', year: 'numeric', weekday: 'long'
+    }) + ' | ' + now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
-// Search Users
-{% if user.role in ['admin', 'librarian'] %}
-document.getElementById('userSearch').addEventListener('input', function() {
-    if (this.value.length > 2) {
-        fetch(`/api/search-users?q=${this.value}`)
-            .then(r => r.json())
-            .then(users => {
-                const html = '<table>' +
-                    '<thead><tr><th>Name</th><th>Enrollment</th><th>Email</th><th>Phone</th></tr></thead><tbody>' +
-                    users.map(u => `<tr>
-                        <td>${u.full_name}</td>
-                        <td>${u.enrollment_number}</td>
-                        <td>${u.email}</td>
-                        <td>${u.phone}</td>
-                    </tr>`).join('') +
-                    '</tbody></table>';
-                document.getElementById('userResults').innerHTML = html;
-            });
+    const dashLayout = document.getElementById('dashLayout');
+    const themeToggle = document.getElementById('themeToggle');
+    const savedTheme = localStorage.getItem('libTheme');
+    if (savedTheme === 'dark') {
+        dashLayout.classList.add('dark');
     }
+
+    themeToggle.addEventListener('click', function () {
+        dashLayout.classList.toggle('dark');
+        localStorage.setItem('libTheme', dashLayout.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    const globalSearch = document.getElementById('globalSearch');
+    const bookResults = document.getElementById('bookResults');
+    const userResults = document.getElementById('userResults');
+
+    function renderBooks(books) {
+        if (!bookResults) return;
+        const html = '<table class="data-table">' +
+            '<thead><tr><th>Book ID</th><th>Title</th><th>Author</th><th>Available</th></tr></thead><tbody>' +
+            books.map(function (b) {
+                return '<tr>' +
+                    '<td>' + (b.book_id || '-') + '</td>' +
+                    '<td>' + (b.title || '-') + '</td>' +
+                    '<td>' + (b.author || '-') + '</td>' +
+                    '<td>' + (b.available_copies ?? '-') + '</td>' +
+                '</tr>';
+            }).join('') +
+            '</tbody></table>';
+        bookResults.innerHTML = html;
+    }
+
+    function renderUsers(users) {
+        if (!userResults) return;
+        const html = '<table class="data-table">' +
+            '<thead><tr><th>User ID</th><th>Name</th><th>Enrollment</th><th>Phone</th></tr></thead><tbody>' +
+            users.map(function (u) {
+                return '<tr>' +
+                    '<td>' + (u.user_id || '-') + '</td>' +
+                    '<td>' + (u.full_name || '-') + '</td>' +
+                    '<td>' + (u.enrollment_number || '-') + '</td>' +
+                    '<td>' + (u.phone || '-') + '</td>' +
+                '</tr>';
+            }).join('') +
+            '</tbody></table>';
+        userResults.innerHTML = html;
+    }
+
+    function loadData(query) {
+        fetch('/api/search-books?q=' + encodeURIComponent(query || ''))
+            .then(function (r) { return r.json(); })
+            .then(function (books) { renderBooks(books || []); });
+
+        if (userResults) {
+            fetch('/api/search-users?q=' + encodeURIComponent(query || ''))
+                .then(function (r) { return r.json(); })
+                .then(function (users) {
+                    if (!Array.isArray(users)) {
+                        renderUsers([]);
+                        return;
+                    }
+                    renderUsers(users);
+                });
+        }
+    }
+
+    let debounceHandle;
+    globalSearch.addEventListener('input', function () {
+        clearTimeout(debounceHandle);
+        const q = this.value.trim();
+        debounceHandle = setTimeout(function () {
+            loadData(q);
+        }, 250);
+    });
+
+    const btnSearchBooks = document.getElementById('btnSearchBooks');
+    if (btnSearchBooks) {
+        btnSearchBooks.addEventListener('click', function (e) {
+            e.preventDefault();
+            globalSearch.focus();
+            document.querySelector('.dual-panels')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    }
+
+    loadData('');
 });
-{% endif %}
 </script>
 {% endblock %}

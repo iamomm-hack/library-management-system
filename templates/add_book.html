@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container page-shell narrow-container">
+    <div class="card">
+        <div class="page-head">
+            <h2>Add Book</h2>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="{{ 'success' if category == 'success' else 'error' }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input id="title" name="title" type="text" required>
+            </div>
+            <div class="form-group">
+                <label for="author">Author</label>
+                <input id="author" name="author" type="text" required>
+            </div>
+            <div class="form-group">
+                <label for="category">Category</label>
+                <input id="category" name="category" type="text">
+            </div>
+            <div class="form-group">
+                <label for="isbn">ISBN (optional)</label>
+                <input id="isbn" name="isbn" type="text">
+            </div>
+            <div class="form-group">
+                <label for="total_copies">Total Copies</label>
+                <input id="total_copies" name="total_copies" type="number" min="1" value="1" required>
+            </div>
+            <button type="submit" class="btn btn-success">Add Book</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
