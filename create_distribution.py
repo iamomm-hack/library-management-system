@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""
-Library Management System - Distribution Package Generator
-Isse deployment package bna deta hai
-"""
-
 import os
 import shutil
 from pathlib import Path
@@ -174,17 +169,17 @@ Your machine will be the DATABASE SERVER that other users connect to.
 
 1️⃣ PostgreSQL Configuration:
    
-   a) PostgreSQL.conf file खुले:
+    a) Open PostgreSQL.conf file:
       Windows: 
       C:\\Program Files\\PostgreSQL\\16\\data\\postgresql.conf
       
-   b) ढूंड़ो "listen_addresses" और बदलो:
+    b) Find "listen_addresses" and update it:
       From: listen_addresses = 'localhost'
       To:   listen_addresses = '*'
       
-   c) Save करो और PostgreSQL restart करो
+    c) Save the file and restart PostgreSQL
 
-2️⃣ Firewall Allow करो (पोर्ट 5432):
+2️⃣ Allow Firewall access (Port 5432):
    
    Windows Defender Firewall:
    → New Inbound Rule
@@ -192,45 +187,45 @@ Your machine will be the DATABASE SERVER that other users connect to.
    → Allow connection
    → Apply to: Domain, Private, Public
 
-3️⃣ PostgreSQL Credentials Verify करो:
+3️⃣ Verify PostgreSQL Credentials:
    
    Username: postgres
    Password: system (or your password)
    Database: library_db
    
-   Test करो:
+    Test command:
    psql -U postgres -h localhost -d library_db
 
 4️⃣ Share Your IP with Others:
    
-   Command लगाओ:
+    Run command:
    ipconfig /all
    
-   IPv4 Address note करो (e.g., 192.168.0.103)
+    Note the IPv4 Address (e.g., 192.168.0.103)
    
-   यही IP सभी को दो जो app use करेंगे
+    Share this IP with all users who will use the app
 
 5️⃣ Verify Connection:
    
-   दूसरे machine से:
+    From another machine:
    psql -U postgres -h <YOUR_IP> -d library_db -c "SELECT COUNT(*) FROM users;"
    
-   यदि काम करता है तो ✅ All set!
+    If this works, ✅ setup is complete.
 
 🔐 SECURITY TIPS:
 
-⚠️ Production के लिए:
-- Strong password set करो DB के लिए
-- Firewall को सिर्फ trusted IPs से allow करो
-- Regular backups لیں
-- .env file को git में commit न करो
+⚠️ For production:
+- Set a strong database password
+- Allow firewall access only for trusted IPs
+- Take regular backups
+- Never commit .env file to git
 
 🚀 NEXT STEPS:
 
-1. Above steps follow करो
-2. अपना IP दूसरों को दो
-3. दूसरे लोग .env में यह IP डालें
-4. सब successfully connect हो जाएंगे!
+1. Follow the setup steps above
+2. Share your server IP with users
+3. Users must set that IP in their .env file
+4. Everyone should now connect successfully
 
 ╚════════════════════════════════════════════════════════════╝
 """
@@ -256,8 +251,8 @@ python-dotenv==1.0.0
 📁 Folder: {dist_folder}/
 
 📋 Contents:
-├── SETUP.txt              ← दूसरे को दो (सेटअप के लिए)
-├── SERVER_SETUP.txt       ← अपने लिए (server setup करने के लिए)
+├── SETUP.txt              <- Share with end users (client setup guide)
+├── SERVER_SETUP.txt       <- Use on server machine (host setup guide)
 ├── app/
 │   ├── LibrarySystem.exe  ← Main app
 │   └── .env               ← Configuration template
@@ -265,15 +260,15 @@ python-dotenv==1.0.0
 
 🎯 NEXT STEPS:
 
-1. SERVER SETUP (अपने machine पर):
-   → SERVER_SETUP.txt पढ़ो
-   → PostgreSQL configure करो
-   → Firewall open करो
+1. SERVER SETUP (on your machine):
+    -> Read SERVER_SETUP.txt
+    -> Configure PostgreSQL
+    -> Open firewall rules
    
-2. DISTRIBUTION (दूसरे को):
-   → Entire folder "{dist_folder}/" को दूसरे को दो
-   → या zip करके send करो
-   → वह SETUP.txt पढ़ेगा और configure करेगा
+2. DISTRIBUTION (for users):
+    -> Share entire folder "{dist_folder}/"
+    -> Or zip and send it
+    -> User follows SETUP.txt to configure and run
 
 ✨ Common setup time: 5-10 minutes
 """)
