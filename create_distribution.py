@@ -16,7 +16,7 @@ def create_distribution_package():
     
     print(f"""
     ╔════════════════════════════════════════════════════════════╗
-    ║   Creating Distribution Package: {dist_folder}
+    ║   Creating Distribution Package: {dist_folder}             ║
     ╚════════════════════════════════════════════════════════════╝
     """)
     
