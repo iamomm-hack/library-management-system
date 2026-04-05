@@ -1,12 +1,3 @@
-"""
-Bulk issue subject-based books to students in PostgreSQL.
-
-Rules:
-- Skip Om Kumar, Mufti Armaan, Satish Jalan, Sayan Roy
-- Give most students 1 or 2 books
-- Ensure Ankit Sarkar gets at least one Algorithms book
-"""
-
 import os
 from datetime import date, timedelta
 
