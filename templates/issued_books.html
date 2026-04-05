@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_avatar.html" import avatar_label %}
 
 {% block content %}
 <div class="container page-shell">
@@ -7,8 +8,17 @@
             <h2>Issued Books</h2>
             <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
         </div>
+        <div class="table-toolbar">
+            <input
+                type="text"
+                id="issuedBooksSearch"
+                class="table-search"
+                placeholder="Search by issue ID, student, student ID, or book..."
+                aria-label="Search in issued books table"
+            >
+        </div>
         <div class="table-wrap">
-            <table class="data-table">
+            <table class="data-table" id="issuedBooksTable">
                 <thead>
                     <tr>
                         <th>Issue ID</th>
@@ -21,16 +31,22 @@
                 </thead>
                 <tbody>
                     {% for r in records %}
-                    <tr>
+                    <tr class="filter-row">
                         <td>{{ r.issue_id }}</td>
-                        <td>{{ r.full_name }}</td>
+                        <td>
+                            {% if r.role == 'student' %}
+                            {{ avatar_label(r.full_name, r.avatar_gender or 'male') }}
+                            {% else %}
+                            {{ r.full_name }}
+                            {% endif %}
+                        </td>
                         <td>{{ r.username }}</td>
                         <td>{{ r.title }}</td>
                         <td>{{ r.issue_date }}</td>
                         <td>{{ r.due_date }}</td>
                     </tr>
                     {% else %}
-                    <tr>
+                    <tr class="no-data-row">
                         <td colspan="6">No issued books found.</td>
                     </tr>
                     {% endfor %}
@@ -39,4 +55,24 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('issuedBooksSearch');
+    const table = document.getElementById('issuedBooksTable');
+    if (!searchInput || !table) {
+        return;
+    }
+
+    const rows = Array.from(table.querySelectorAll('tbody tr.filter-row'));
+
+    searchInput.addEventListener('input', function () {
+        const query = this.value.trim().toLowerCase();
+        rows.forEach(function (row) {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+});
+</script>
 {% endblock %}
