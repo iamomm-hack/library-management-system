@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_avatar.html" import avatar_label %}
 
 {% block content %}
 <div class="container page-shell">
@@ -22,7 +23,15 @@
                     {% for r in records %}
                     <tr>
                         <td>{{ r.log_id }}</td>
-                        <td>{{ r.full_name or '-' }}</td>
+                        <td>
+                            {% if r.full_name and r.role == 'student' %}
+                            {{ avatar_label(r.full_name, r.avatar_gender or 'male') }}
+                            {% elif r.full_name %}
+                            {{ r.full_name }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
                         <td>{{ r.action }}</td>
                         <td>{{ r.details }}</td>
                         <td>{{ r.timestamp }}</td>
