@@ -1,393 +1,515 @@
-# 📚 Advanced Library Management System
+# Library Management System (Desktop + Web)
 
-## 🌟 Project Overview
+A complete role-based Library Management System built in Python with two interfaces:
+- Desktop app using Tkinter
+- Web app using Flask + Jinja templates
 
-This is a **production-grade Library Management System** built using pure Python and a Tkinter GUI. It includes advanced features suitable for strong academic and real-world demonstrations.
+This repository also includes data import utilities, migration helpers, bulk issue scripts, and build/distribution tooling.
 
+## Table of Contents
+1. Project Overview
+2. What This Project Solves
+3. Architecture (with Mermaid)
+4. Tech Stack
+5. Feature Matrix
+6. Repository Structure
+7. Web Routes and Access Control
+8. Database Schema and ER Diagram
+9. Setup and Run Guide
+10. Environment Configuration
+11. Data Import and Utility Scripts
+12. Build and Distribution
+13. Deployment Notes
+14. Security Notes
+15. Troubleshooting
+16. Demo Flow for Presentation
+17. Roadmap
 
-## 🚀 Unique Features
+## 1. Project Overview
 
-### 1. **Multi-User Role System**
-- 🔐 **Admin**: Complete system control
-- 📚 **Librarian**: Book management & issue/return
-- 👨‍🎓 **Student**: Browse, search, issue requests
+This project handles end-to-end library operations:
+- User authentication and role-based access
+- Book inventory management
+- Book issue and return workflows
+- Reports and activity logging
+- Search across users and books
 
-### 2. **Professional GUI Interface**
-- Modern, sleek design with color-coded sections
-- Responsive layout with proper navigation
-- Dashboard with real-time statistics
-- Professional tables with sorting & filtering
+Supported roles:
+- Admin
+- Librarian
+- Student
 
-### 3. **Advanced Database Features**
-- SQLite database with proper relationships
-- Transaction logging
-- Data integrity constraints
-- Activity tracking for audit
+Current UI stack in repo:
+- Desktop UI: [library_system.py](library_system.py)
+- Web UI: [app.py](app.py) with templates in [templates](templates)
 
-### 4. **Smart Book Management**
-- ISBN-based unique identification
-- Multiple copies tracking
-- Shelf location management
-- Category-wise organization
-- Advanced search (by title, author, ISBN, category)
+## 2. What This Project Solves
 
-### 5. **Intelligent Issue/Return System**
-- Automatic due date calculation
-- Real-time availability tracking
-- Fine calculation for overdue books (₹5 per day)
-- Issue history maintenance
-- Overdue notifications
+Traditional library workflows are often manual and error-prone. This system centralizes:
+- Book stock tracking
+- Due-date and return lifecycle
+- User-level visibility and permissions
+- Historical activity logs for audit and monitoring
 
-### 6. **Book Reservation System**
-- Students can reserve unavailable books
-- Automatic notification queue
-- Priority-based allocation
+## 3. Architecture (with Mermaid)
 
-### 7. **Comprehensive Reports & Analytics**
-- 📊 Dashboard with live statistics
-- 📈 Most issued books ranking
-- ⚠️ Overdue books tracking
-- 💰 Fine collection reports
-- 📜 Complete activity log
+### 3.1 High-Level Component Flow
 
-### 8. **Security Features**
-- Password hashing (SHA-256)
-- Role-based access control
-- Session management
-- Activity logging for accountability
+```mermaid
+flowchart LR
+    U[Users\nStudent / Librarian / Admin]
+    W[Web UI\nFlask Templates + CSS + JS]
+    D[Desktop UI\nTkinter]
+    A[Application Logic\nAuth / Issue-Return / Reports]
+    DB[(PostgreSQL\nlibrary_db)]
+    S[Utility Scripts\nImport / Migration / Build]
 
-### 9. **User-Friendly Features**
-- Search with multiple filters
-- Bulk operations support
-- Export reports capability
-- Easy navigation
-- Keyboard shortcuts (Enter to submit)
-
-## 📋 System Requirements
-
+    U --> W
+    U --> D
+    W --> A
+    D --> A
+    A --> DB
+    S --> DB
 ```
-Python 3.7+
-tkinter (usually comes with Python)
-sqlite3 (comes with Python)
+
+### 3.2 Issue and Return Flow (Simple Sequence)
+
+```mermaid
+sequenceDiagram
+    participant Staff as Admin/Librarian
+    participant UI as Web/Desktop UI
+    participant App as App Logic
+    participant DB as PostgreSQL
+
+    Staff->>UI: Enter user and book details
+    UI->>App: Submit issue request
+    App->>DB: Validate user, book, stock
+    App->>DB: Insert issue_records row
+    App->>DB: Decrease books.available_copies
+    App-->>UI: Issue success
+
+    Staff->>UI: Enter issue_id for return
+    UI->>App: Submit return request
+    App->>DB: Mark issue_records as returned
+    App->>DB: Increase books.available_copies
+    App-->>UI: Return success
 ```
 
-## 🛠️ Installation & Setup
+### 3.3 Layered View
+- Presentation Layer: Tkinter desktop + Flask templates
+- Application Layer: auth, role checks, issue/return, reporting, search
+- Data Layer: PostgreSQL tables (users, books, issue_records, reservations, activity_log)
+- Operations Layer: import scripts, migration scripts, packaging scripts
 
-### Step 1: Clone/Download Files
+## 4. Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Language | Python 3.x |
+| Web Framework | Flask |
+| Desktop UI | Tkinter |
+| Database | PostgreSQL (primary runtime DB) |
+| DB Driver | psycopg2-binary |
+| Templates | Jinja2 |
+| Frontend | HTML, CSS, Vanilla JavaScript |
+| Env Config | python-dotenv |
+| Data Import | pandas, openpyxl, requests |
+| Build | PyInstaller |
+
+Pinned dependencies in [requirements-web.txt](requirements-web.txt):
+- Flask==2.3.2
+- Flask-CORS==4.0.0
+- psycopg2-binary==2.9.9
+- python-dotenv==1.0.0
+
+Pinned dependencies in [requirements.txt](requirements.txt):
+- psycopg2-binary==2.9.9
+- python-dotenv==1.0.0
+
+## 5. Feature Matrix
+
+| Feature | Student | Librarian | Admin |
+|---|---:|---:|---:|
+| Login/Logout | Yes | Yes | Yes |
+| Dashboard access | Yes | Yes | Yes |
+| Search books | Yes | Yes | Yes |
+| Search users | No | Yes | Yes |
+| My books view | Yes | Yes (staff view expanded) | Yes (staff view expanded) |
+| Add books | No | Yes | Yes |
+| Issue books | No | Yes | Yes |
+| Return books | No | Yes | Yes |
+| Manage users | No | Yes | Yes |
+| Reports | No | Yes | Yes |
+| Activity log | No | Yes | Yes |
+
+Web dashboard UX includes:
+- Sidebar menu toggle for responsive layout
+- Theme toggle (dark/light) with persistence
+- Search snapshots for books and users
+- Greeting card with quick actions for staff
+
+## 6. Repository Structure
+
+```text
+library-python/
+├── app.py
+├── library_system.py
+├── templates/
+│   ├── base.html
+│   ├── dashboard.html
+│   ├── login.html
+│   ├── my_books.html
+│   ├── manage_users.html
+│   ├── issued_books.html
+│   ├── add_book.html
+│   ├── issue_book.html
+│   ├── return_book.html
+│   ├── reports.html
+│   ├── activity_log.html
+│   ├── 404.html
+│   └── _avatar.html
+├── static/
+│   ├── styles.css
+│   └── logo-wide.png
+├── import_students_postgres.py
+├── import_google_books.py
+├── issue_subject_books.py
+├── top_up_students_with_books.py
+├── migrate_to_pg.py
+├── fix_placeholders.py
+├── build.py
+├── create_distribution.py
+├── setup_server.py
+├── requirements-web.txt
+├── requirements.txt
+├── DEPLOYMENT_GUIDE.md
+├── project.md
+└── README.md
+```
+
+## 7. Web Routes and Access Control
+
+Routes defined in [app.py](app.py):
+
+| Method | Route | Access |
+|---|---|---|
+| GET | / | Public (redirect to login) |
+| GET, POST | /login | Public |
+| GET | /dashboard | Authenticated |
+| GET | /api/search-books | Authenticated |
+| GET | /api/search-users | Staff only |
+| GET | /my-books | Authenticated |
+| GET | /manage-users | Staff only |
+| GET | /issued-books | Staff only |
+| GET | /reports | Staff only |
+| GET | /activity-log | Staff only |
+| GET, POST | /add-book | Staff only |
+| GET, POST | /issue-book | Staff only |
+| GET, POST | /return-book | Staff only |
+| GET | /logout | Authenticated |
+
+Decorators used:
+- login_required
+- staff_required
+
+## 8. Database Schema and ER Diagram
+
+### 8.1 Main Tables
+- users
+- books
+- issue_records
+- reservations
+- activity_log
+
+### 8.2 ER Diagram
+
+```mermaid
+erDiagram
+    USERS ||--o{ ISSUE_RECORDS : borrows
+    BOOKS ||--o{ ISSUE_RECORDS : issued_in
+    USERS ||--o{ RESERVATIONS : places
+    BOOKS ||--o{ RESERVATIONS : reserved_for
+    USERS ||--o{ ACTIVITY_LOG : generates
+
+    USERS {
+        int user_id PK
+        string username UK
+        string password
+        string role
+        string full_name
+        string email
+        string phone
+        datetime created_at
+    }
+
+    BOOKS {
+        int book_id PK
+        string isbn UK
+        string title
+        string author
+        string category
+        string publisher
+        int year
+        int total_copies
+        int available_copies
+    }
+
+    ISSUE_RECORDS {
+        int issue_id PK
+        int book_id FK
+        int user_id FK
+        date issue_date
+        date due_date
+        date return_date
+        float fine_amount
+        bool fine_paid
+        string status
+    }
+
+    RESERVATIONS {
+        int reservation_id PK
+        int book_id FK
+        int user_id FK
+        datetime reservation_date
+        string status
+    }
+
+    ACTIVITY_LOG {
+        int log_id PK
+        int user_id FK
+        string action
+        string details
+        datetime timestamp
+    }
+```
+
+### 8.3 Important Data Note
+This repo has mixed historical data paths:
+- Runtime web/desktop apps use PostgreSQL.
+- [add_sample_data.py](add_sample_data.py) writes into SQLite file [library.db](library.db).
+
+So if you seed only SQLite, web login/search in PostgreSQL will not show that data.
+
+## 9. Setup and Run Guide
+
+### 9.1 Prerequisites
+- Python 3.10+ recommended
+- PostgreSQL running and reachable
+- pip available
+
+### 9.2 Clone and Enter Project
+
 ```bash
-# Download project files (at least library_system.py and add_sample_data.py)
+git clone <your-repo-url>
+cd library-python
 ```
 
-### Step 2: Run the Program
+### 9.3 Create and Activate Virtual Environment (Recommended)
+
+Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+### 9.4 Install Dependencies
+
+For web mode:
+
+```bash
+pip install -r requirements-web.txt
+```
+
+For desktop mode minimum:
+
+```bash
+pip install -r requirements.txt
+```
+
+If you will run import/build scripts too:
+
+```bash
+pip install pandas openpyxl requests pyinstaller
+```
+
+### 9.5 Configure Environment
+
+Copy [ .env.example ](.env.example) to .env and set real values:
+
+```env
+GOOGLE_BOOKS_API_KEY=your_api_key
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=library_db
+DB_USER=postgres
+DB_PASSWORD=your_password
+```
+
+### 9.6 Run Web App
+
+```bash
+python app.py
+```
+
+Open: http://localhost:5000
+
+### 9.7 Run Desktop App
+
 ```bash
 python library_system.py
 ```
 
-### Step 3 (Optional): Add Sample Data
-```bash
-python add_sample_data.py
-```
+Desktop app initializes tables and creates default admin user if missing:
+- Username: admin
+- Password: admin123
 
-### Step 4: Default Login Credentials
-```
-Username: admin
-Password: admin123
-```
+## 10. Environment Configuration
 
-## 🐘 PostgreSQL Setup + Excel Student Import
+Environment variables used by web and script tools:
+- DB_HOST
+- DB_PORT
+- DB_NAME
+- DB_USER
+- DB_PASSWORD
+- GOOGLE_BOOKS_API_KEY
 
-If you want to store real student data in PostgreSQL, follow these steps:
+Reference template: [.env.example](.env.example)
 
-### 1) Install required Python packages
-```bash
-pip install psycopg2-binary pandas openpyxl
-```
+## 11. Data Import and Utility Scripts
 
-### 2) Create PostgreSQL database
-```sql
-CREATE DATABASE library_db;
-```
+### 11.1 Import students from Excel to PostgreSQL
 
-### 3) Prepare Excel file
-Keep these columns in your Excel sheet (case-insensitive):
-- `username` (required)
-- `full_name` (required)
-- `email` (optional)
-- `phone` (optional)
-- `password` (optional, default used if missing)
-
-### 4) Import students from Excel to PostgreSQL
 ```bash
 python import_students_postgres.py --excel "students.xlsx" --host localhost --port 5432 --db library_db --user postgres --password your_password
 ```
 
-### 5) Notes
-- The script creates `users` table if it does not exist.
-- Existing students with same username are updated (`ON CONFLICT`).
-- Passwords are hashed using SHA-256, same style as the current project.
-- Missing passwords automatically use default: `student123`.
+What it does:
+- Detects header rows from sheets
+- Normalizes common column aliases
+- Upserts students into users table
+- Hashes passwords with SHA-256
 
-## 📖 How to Use
+### 11.2 Import books from Google Books API
 
-### For Admin/Librarian:
-
-1. **Add Books**
-   - Navigate to "Add Book" from menu
-   - Fill in book details (ISBN, Title, Author, etc.)
-   - Set number of copies
-   - Click "Add Book"
-
-2. **Issue Books**
-   - Go to "Issue Book"
-   - Enter student username
-   - Enter book ISBN or ID
-   - Set issue period (default 14 days)
-   - Click "Issue Book"
-
-3. **Return Books**
-   - Go to "Return Book"
-   - Enter Issue ID from the table
-   - Fine will be automatically calculated if overdue
-   - Click "Return Book"
-
-4. **View Reports**
-   - Check "Reports" for analytics
-   - See overdue books
-   - View most popular books
-   - Track fines
-
-5. **Manage Users**
-   - View all registered users
-   - Check user details
-   - Monitor user activity
-
-### For Students:
-
-1. **Register**
-   - Click "Register New Student" on login page
-   - Fill in your details
-   - Login with credentials
-
-2. **Search Books**
-   - Use "Search Books" option
-   - Filter by Title, Author, ISBN, or Category
-   - Check availability
-
-3. **View My Books**
-   - See currently issued books
-   - Check due dates
-   - View fines (if any)
-
-4. **Reserve Books**
-   - Reserve unavailable books
-   - Get notified when available
-
-## 🎯 Database Schema
-
-### Tables:
-
-1. **users** - User accounts and roles
-2. **books** - Book inventory
-3. **issue_records** - Issue/return transactions
-4. **reservations** - Book reservations
-5. **activity_log** - System activity tracking
-
-## 💡 Key Highlights
-
-### Why This Project Stands Out:
-
-1. **Professional Architecture**
-   - Clean code with proper OOP
-   - Separation of concerns (Database class)
-   - Modular design for easy maintenance
-
-2. **Real-World Features**
-   - Fine calculation system
-   - Reservation queue
-   - Activity logging
-   - Multi-user support
-
-3. **User Experience**
-   - Intuitive GUI
-   - Real-time updates
-   - Error handling
-   - Input validation
-
-4. **Scalability**
-   - Can handle thousands of books
-   - Multiple concurrent users
-   - Efficient database queries
-   - Optimized performance
-
-5. **Security**
-   - Encrypted passwords
-   - Role-based permissions
-   - Audit trails
-   - Session management
-
-## 🎨 GUI Screenshots Description
-
-### Login Screen
-- Clean, modern design
-- Dark theme with professional colors
-- Register option for new students
-
-### Dashboard
-- Live statistics cards
-- Color-coded metrics
-- Recent activity feed
-- Quick navigation menu
-
-### Search Interface
-- Multi-filter search
-- Sortable results table
-- Availability indicators
-- Export options
-
-### Issue/Return Screens
-- Simple, intuitive forms
-- Real-time validation
-- Automatic calculations
-- Confirmation dialogs
-
-## 📊 Sample Data
-
-The system comes with:
-- Pre-configured admin account
-- Empty database ready for data
-- Automatic table creation
-- Sample transaction logs after use
-
-To populate sample books/users quickly:
 ```bash
-python add_sample_data.py
+python import_google_books.py
 ```
 
-## 🔧 Customization Options
+Requirements:
+- Valid GOOGLE_BOOKS_API_KEY in .env
 
-You can easily customize:
+### 11.3 Subject-wise bulk issue script
 
-```python
-# Change fine rate per day
-self.fine_per_day = 5.0  # Change to any amount
-
-# Change default issue period
-self.issue_days.insert(0, "14")  # Change to any number
-
-# Modify color scheme in show_login() and other methods
-bg="#34495e"  # Change background colors
-fg="#ecf0f1"  # Change foreground colors
+```bash
+python issue_subject_books.py
 ```
 
-## 🎓 Educational Value
+### 11.4 Top-up students with no issued books
 
-### Concepts Demonstrated:
+```bash
+python top_up_students_with_books.py
+```
 
-1. **Database Management**
-   - CRUD operations
-   - Relations & joins
-   - Transactions
-   - Indexing
+### 11.5 SQL placeholder migration helper
 
-2. **GUI Development**
-   - Tkinter widgets
-   - Event handling
-   - Layout management
-   - Dynamic content
+```bash
+python migrate_to_pg.py
+python fix_placeholders.py
+```
 
-3. **Software Engineering**
-   - OOP principles
-   - Code organization
-   - Error handling
-   - User input validation
+## 12. Build and Distribution
 
-4. **Security**
-   - Password hashing
-   - Access control
-   - Data protection
+### 12.1 Build desktop executable
 
-## 🐛 Troubleshooting
+```bash
+python build.py
+```
 
-### Common Issues:
+Output typically appears in dist/ as LibrarySystem.exe.
 
-1. **tkinter not found**
-   ```bash
-   # On Ubuntu/Debian
-   sudo apt-get install python3-tk
-   
-   # On macOS (usually pre-installed)
-   # On Windows (comes with Python)
-   ```
+### 12.2 Create distribution package
 
-2. **Database locked error**
-   - Close any other instances of the program
-   - Check file permissions
+```bash
+python create_distribution.py
+```
 
-3. **GUI not displaying properly**
-   - Update Python to latest version
-   - Check screen resolution settings
+Generates a timestamped distribution folder with:
+- executable
+- env template
+- setup docs
+- connection test script
 
-## 📝 Future Enhancements
+### 12.3 Automated server setup helper
 
-Possible additions:
-- [ ] Email notifications
-- [ ] Barcode scanning
-- [ ] Book recommendation system
-- [ ] Export to PDF/Excel
-- [ ] Mobile app integration
-- [ ] Cloud database support
-- [ ] Advanced analytics graphs
+```bash
+python setup_server.py
+```
 
-## 🏆 Project Highlights for Presentation
+## 13. Deployment Notes
 
-When presenting this project, emphasize:
+Detailed deployment reference is available in [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md).
 
-1. **Completeness**: Full CRUD operations with advanced features
-2. **User Roles**: Multi-tier access control system
-3. **Real-time Updates**: Live dashboard and statistics
-4. **Security**: Proper authentication and authorization
-5. **Professional UI**: Clean, modern interface
-6. **Database Design**: Normalized schema with relationships
-7. **Scalability**: Can handle real library operations
-8. **Error Handling**: Robust validation and error messages
+Typical deployment options:
+- Standalone desktop executable
+- Python runtime deployment
+- Remote PostgreSQL server deployment
 
-## 👨‍💻 Developer Notes
+Recommended production checklist:
+- Use strong DB password
+- Keep .env out of Git
+- Restrict PostgreSQL network access
+- Schedule database backups
 
-### Code Quality:
-- ✅ Clean, commented code
-- ✅ Consistent naming conventions
-- ✅ Modular structure
-- ✅ Error handling
-- ✅ Input validation
-- ✅ Security best practices
+## 14. Security Notes
 
-### Performance:
-- Optimized database queries
-- Efficient GUI updates
-- Minimal resource usage
-- Fast response times
+Implemented:
+- Password hashing using SHA-256
+- Session-based authentication
+- Role-based page and API guards
+- Activity logging of key actions
 
-## 📞 Support & Questions
+Recommended hardening:
+- Move Flask secret key to environment variable
+- Add CSRF protection for forms
+- Add login rate limiting
+- Add password reset and policy enforcement
 
-For any queries about the project:
-- Review the code comments
-- Check the database schema
-- Test with sample data
-- Modify as per your requirements
+## 15. Troubleshooting
 
-## 🎉 Success Tips
+Common fixes:
+- Login fails:
+  - Verify user exists in PostgreSQL users table.
+  - Ensure password is stored as SHA-256 hash.
+- Web app shows empty data:
+  - Check you imported data into PostgreSQL, not only SQLite.
+- DB connection errors:
+  - Recheck DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD in .env.
+- Import errors:
+  - Ensure pandas/openpyxl/requests are installed.
 
-To make this project even more impressive:
+## 16. Demo Flow for Presentation
 
-1. **Demo Data**: Add 20-30 sample books before presentation
-2. **Live Demo**: Show all features in action
-3. **Explain Architecture**: Discuss database design and code structure
-4. **Show Reports**: Demonstrate analytics and logging
-5. **Discuss Scalability**: Explain how it handles real-world scenarios
+Use this flow for a strong project demo:
+1. Login as admin/librarian
+2. Show dashboard metrics and dark mode toggle
+3. Search books and users
+4. Add a new book
+5. Issue a book
+6. Return the same book
+7. Open reports and activity log
+8. Show import scripts and architecture diagram
+
+## 17. Roadmap
+
+Possible future improvements:
+- Full automated test suite
+- CI/CD pipeline
+- Docker-based deployment
+- Email notifications for due/overdue
+- OAuth-based login
+- Better fine and payment workflows
 
 ---
 
-## 🌟 Final Words
-
-This project goes far beyond a basic library system. It combines professional features, clean code, security, and strong user experience. Present it confidently by explaining how it can handle real-world library operations.
-
+If you want a college presentation version, refer to [project.md](project.md) for an A-Z narrative format in Hinglish.
