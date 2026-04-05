@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_avatar.html" import avatar_label %}
 
 {% block content %}
 <div class="container page-shell">
@@ -7,11 +8,28 @@
             <h2>My Books</h2>
             <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
         </div>
+        {% if is_staff_view %}
+        <p class="table-foot-note">Showing latest issue records for all students.</p>
+        {% endif %}
+        <div class="table-toolbar">
+            <input
+                type="text"
+                id="myBooksSearch"
+                class="table-search"
+                placeholder="{{ 'Search by student, enrollment, title, status...' if is_staff_view else 'Search by issue ID, title, author, status...' }}"
+                aria-label="Search in my books"
+            >
+        </div>
+        {% set column_count = 9 if is_staff_view else 7 %}
         <div class="table-wrap">
-            <table class="data-table">
+            <table class="data-table" id="myBooksTable">
                 <thead>
                     <tr>
                         <th>Issue ID</th>
+                        {% if is_staff_view %}
+                        <th>Student</th>
+                        <th>Enrollment</th>
+                        {% endif %}
                         <th>Title</th>
                         <th>Author</th>
                         <th>Issue Date</th>
@@ -22,8 +40,18 @@
                 </thead>
                 <tbody>
                     {% for r in records %}
-                    <tr>
+                    <tr class="filter-row">
                         <td>{{ r.issue_id }}</td>
+                        {% if is_staff_view %}
+                        <td>
+                            {% if r.role == 'student' %}
+                            {{ avatar_label(r.full_name, r.avatar_gender or 'male') }}
+                            {% else %}
+                            {{ r.full_name }}
+                            {% endif %}
+                        </td>
+                        <td>{{ r.username }}</td>
+                        {% endif %}
                         <td>{{ r.title }}</td>
                         <td>{{ r.author }}</td>
                         <td>{{ r.issue_date }}</td>
@@ -32,8 +60,8 @@
                         <td>{{ r.status }}</td>
                     </tr>
                     {% else %}
-                    <tr>
-                        <td colspan="7">No records found.</td>
+                    <tr class="no-data-row">
+                        <td colspan="{{ column_count }}">No issue records found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -41,4 +69,24 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('myBooksSearch');
+    const table = document.getElementById('myBooksTable');
+    if (!searchInput || !table) {
+        return;
+    }
+
+    const rows = Array.from(table.querySelectorAll('tbody tr.filter-row'));
+
+    searchInput.addEventListener('input', function () {
+        const query = this.value.trim().toLowerCase();
+        rows.forEach(function (row) {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+});
+</script>
 {% endblock %}
