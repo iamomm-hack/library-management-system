@@ -87,28 +87,36 @@ body {
 }
 
 .avatar-badge {
-    width: 1.3rem;
-    height: 1.3rem;
+    width: 1.5rem;
+    height: 1.5rem;
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
+    background: #f3f4f6;
+    border: 1px solid #d8dbe2;
 }
 
 .avatar-badge .icon {
-    width: 0.82rem;
-    height: 0.82rem;
+    width: 1.25rem;
+    height: 1.25rem;
 }
 
 .avatar-male {
-    background: #dbe9ff;
-    color: #235fc0;
+    box-shadow: 0 0 0 1px rgba(64, 123, 235, 0.35) inset;
 }
 
 .avatar-female {
-    background: #ffe0ee;
-    color: #bc2f72;
+    box-shadow: 0 0 0 1px rgba(224, 89, 154, 0.35) inset;
+}
+
+.avatar-pfp-bg {
+    fill: #dfdfe3;
+}
+
+.avatar-pfp-shape {
+    fill: #b9b9bf;
 }
 
 .avatar-text {
