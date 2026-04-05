@@ -503,6 +503,34 @@ body {
     box-shadow: var(--shadow);
 }
 
+.hello-card-grid {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.hello-content {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.hello-logo-wrap {
+    flex: 0 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 4px;
+}
+
+.hello-logo-strip {
+    display: block;
+    width: min(360px, 40vw);
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
 .hello-card h2 {
     font-size: 2rem;
     font-weight: 700;
@@ -846,6 +874,15 @@ body {
 
     .choices-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hello-card-grid {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .hello-logo-strip {
+        width: min(100%, 360px);
     }
 }
 

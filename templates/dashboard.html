@@ -127,17 +127,28 @@
         </header>
 
         <section class="hello-card">
-            <h2 class="hello-title">
-                <span class="hello-prefix" id="timeGreeting">Good Day,</span>
-                <span class="hello-user-name">{{ user.full_name }}</span>
-            </h2>
-            <p id="currentDateTime"></p>
-            {% if user.role in ['admin', 'librarian'] %}
-            <div class="quick-actions">
-                <a href="{{ url_for('issue_book') }}" class="btn btn-success">Issue Book</a>
-                <a href="{{ url_for('return_book') }}" class="btn btn-primary">Return Book</a>
+            <div class="hello-card-grid">
+                <div class="hello-content">
+                    <h2 class="hello-title">
+                        <span class="hello-prefix" id="timeGreeting">Good Day,</span>
+                        <span class="hello-user-name">{{ user.full_name }}</span>
+                    </h2>
+                    <p id="currentDateTime"></p>
+                    {% if user.role in ['admin', 'librarian'] %}
+                    <div class="quick-actions">
+                        <a href="{{ url_for('issue_book') }}" class="btn btn-success">Issue Book</a>
+                        <a href="{{ url_for('return_book') }}" class="btn btn-primary">Return Book</a>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="hello-logo-wrap">
+                    <img
+                        src="{{ url_for('static', filename='logo-wide.png') }}"
+                        class="hello-logo-strip"
+                        alt="Techno India University and Sister Nivedita University logos"
+                    >
+                </div>
             </div>
-            {% endif %}
         </section>
 
         <section class="dash-stats-grid dashboard-highlight-grid">
