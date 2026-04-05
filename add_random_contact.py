@@ -3,7 +3,6 @@ from openpyxl import load_workbook
 
 excel_file = "Student_List_2nd_Sem.xlsx"
 
-# Load workbook directly
 wb = load_workbook(excel_file)
 
 print(f"Sheets: {wb.sheetnames}")
@@ -11,7 +10,6 @@ print(f"Sheets: {wb.sheetnames}")
 for sheet_name in wb.sheetnames:
     ws = wb[sheet_name]
     
-    # Find header row (look for "Name" column)
     header_row = 0
     for row_idx, row in enumerate(ws.iter_rows(min_row=1, max_row=15, values_only=False), 1):
         row_values = [cell.value for cell in row if cell.value]
@@ -24,14 +22,11 @@ for sheet_name in wb.sheetnames:
     
     print(f"\n✓ {sheet_name}: header at row {header_row}")
     
-    # Add email and phone columns after last column
     max_col = ws.max_column + 1
     
-    # Add headers
     ws.cell(row=header_row, column=max_col, value="email")
     ws.cell(row=header_row, column=max_col+1, value="phone")
     
-    # Add data starting from header_row+1
     data_row = header_row + 1
     row_count = 0
     

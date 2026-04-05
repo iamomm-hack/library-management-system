@@ -35,25 +35,21 @@ def main():
     ╚════════════════════════════════════════════════════════════╝
     """)
     
-    # Check if library_system.py exists
     if not os.path.exists("library_system.py"):
         print("❌ Error: library_system.py not found!")
         sys.exit(1)
     
-    # Step 1: Install requirements
     run_command(
         "pip install -r requirements.txt",
         "1/3: Installing dependencies"
     )
     
-    # Step 2: Clean old build artifacts
     print("\n📦 Cleaning old build artifacts...")
     for folder in ["build", "dist", "__pycache__"]:
         if os.path.exists(folder):
             shutil.rmtree(folder)
             print(f"   Removed: {folder}/")
     
-    # Step 3: Build .exe
     pyinstaller_cmd = (
         "pyinstaller "
         "--onefile "
@@ -69,7 +65,6 @@ def main():
         "2/3: Building executable (.exe)"
     )
     
-    # Step 4: Verify
     exe_path = Path("dist/LibrarySystem.exe")
     if exe_path.exists():
         print("\n" + "="*60)

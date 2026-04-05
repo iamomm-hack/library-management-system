@@ -29,7 +29,6 @@ def hash_password(password: str) -> str:
 
 
 def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
-    # Normalize incoming headers so small naming differences do not break import.
     normalized = {col: col.strip().lower() for col in df.columns}
     df = df.rename(columns=normalized)
 
@@ -71,7 +70,6 @@ def _detect_header_row(sheet_df: pd.DataFrame) -> int:
 
 
 def load_excel_with_detected_header(excel_path: str) -> pd.DataFrame:
-    # Merge all sheets because student lists are often split by sections.
     workbook = pd.ExcelFile(excel_path)
     frames = []
 

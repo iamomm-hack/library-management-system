@@ -5,14 +5,12 @@ QUICK START GUIDE - Library Management System
 Follow these simple steps to run the project:
 """
 
-# STEP 1: INSTALL PYTHON
 """
 Download Python from: https://www.python.org/downloads/
 Version: 3.7 or higher
 Make sure to check "Add Python to PATH" during installation
 """
 
-# STEP 2: VERIFY INSTALLATION
 """
 Open Command Prompt/Terminal and run:
     python --version
@@ -20,7 +18,6 @@ Open Command Prompt/Terminal and run:
 You should see something like: Python 3.x.x
 """
 
-# STEP 3: RUN THE PROGRAM
 """
 Navigate to the project folder and run:
     python library_system.py
@@ -32,14 +29,12 @@ This will:
 - Open the GUI
 """
 
-# STEP 4: LOGIN
 """
 Use default credentials:
     Username: admin
     Password: admin123
 """
 
-# STEP 5 (OPTIONAL): ADD SAMPLE DATA
 """
 To populate with 25+ books and demo users:
     python add_sample_data.py
@@ -51,7 +46,6 @@ This will add:
 - Some issue records for demo
 """
 
-# FEATURES YOU CAN DEMONSTRATE:
 
 print("""
 🎯 DEMO CHECKLIST FOR PRESENTATION:

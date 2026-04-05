@@ -19,7 +19,6 @@ def populate_sample_data():
     
     print("🔄 Adding sample data to the database...")
     
-    # Sample Students
     students = [
         ("om_kumar", "om123", "Om Kumar", "om@email.com", "9876543210"),
         ("mufti_armaan", "armaan123", "Mufti Armaan", "armaan@email.com", "9876543211"),
@@ -40,7 +39,6 @@ def populate_sample_data():
         except sqlite3.IntegrityError:
             print(f"   ⚠ Skipped: {name} (already exists)")
     
-    # Sample Librarian
     try:
         cursor.execute('''
             INSERT INTO users (username, password, role, full_name, email, phone)
@@ -51,9 +49,7 @@ def populate_sample_data():
     except sqlite3.IntegrityError:
         print("\n⚠ Librarian already exists")
     
-    # Sample Books
     books = [
-        # Computer Science
         ("978-0132350884", "Clean Code", "Robert C. Martin", "Computer Science", 
          "Prentice Hall", 2008, 3, "CS-A1", "A handbook of agile software craftsmanship"),
         
@@ -69,7 +65,6 @@ def populate_sample_data():
         ("978-0135957059", "The Pragmatic Programmer", "David Thomas", "Computer Science",
          "Addison-Wesley", 2019, 2, "CS-B2", "Your journey to mastery"),
         
-        # Data Science & AI
         ("978-1449369415", "Python for Data Analysis", "Wes McKinney", "Data Science",
          "O'Reilly", 2017, 4, "DS-A1", "Data wrangling with Pandas and NumPy"),
         
@@ -79,21 +74,18 @@ def populate_sample_data():
         ("978-0262033848", "Deep Learning", "Ian Goodfellow", "Data Science",
          "MIT Press", 2016, 2, "DS-A3", "Comprehensive deep learning textbook"),
         
-        # Mathematics
         ("978-0073383095", "Discrete Mathematics", "Kenneth Rosen", "Mathematics",
          "McGraw-Hill", 2018, 3, "MATH-A1", "Applications in computer science"),
         
         ("978-0321774415", "Linear Algebra", "David Lay", "Mathematics",
          "Pearson", 2015, 2, "MATH-A2", "And its applications"),
         
-        # Physics
         ("978-0321973610", "University Physics", "Young & Freedman", "Physics",
          "Pearson", 2019, 3, "PHY-A1", "With modern physics"),
         
         ("978-1292026558", "Fundamentals of Physics", "Halliday Resnick", "Physics",
          "Wiley", 2013, 2, "PHY-A2", "Extended edition"),
         
-        # Fiction & Literature
         ("978-0547928227", "The Hobbit", "J.R.R. Tolkien", "Fiction",
          "Mariner Books", 2012, 4, "FIC-A1", "Classic fantasy adventure"),
         
@@ -109,7 +101,6 @@ def populate_sample_data():
         ("978-0743273565", "The Great Gatsby", "F. Scott Fitzgerald", "Fiction",
          "Scribner", 2004, 3, "FIC-C1", "American classic about the Jazz Age"),
         
-        # Business & Economics
         ("978-0062316097", "Sapiens", "Yuval Noah Harari", "Non-Fiction",
          "Harper", 2015, 3, "BUS-A1", "A brief history of humankind"),
         
@@ -119,7 +110,6 @@ def populate_sample_data():
         ("978-1476753836", "Atomic Habits", "James Clear", "Self-Help",
          "Avery", 2018, 5, "SELF-A1", "Build good habits and break bad ones"),
         
-        # Web Development
         ("978-1491957660", "JavaScript: The Definitive Guide", "David Flanagan", "Computer Science",
          "O'Reilly", 2020, 3, "CS-C1", "Master the JavaScript language"),
         
@@ -129,7 +119,6 @@ def populate_sample_data():
         ("978-1491974827", "Learning React", "Alex Banks", "Computer Science",
          "O'Reilly", 2020, 3, "CS-C3", "Modern patterns for developing React apps"),
         
-        # Database
         ("978-0596520823", "SQL and Relational Theory", "C.J. Date", "Computer Science",
          "O'Reilly", 2015, 2, "CS-D1", "Write accurate SQL code"),
         
@@ -165,10 +154,8 @@ def populate_sample_data():
         except sqlite3.IntegrityError:
             print(f"   ⚠ Skipped: {book[1]} (already exists)")
     
-    # Add some issue records for demo
     print("\n📤 Adding sample issue records...")
     
-    # Get some book and user IDs
     cursor.execute("SELECT book_id FROM books LIMIT 5")
     book_ids = [row[0] for row in cursor.fetchall()]
     
@@ -185,7 +172,6 @@ def populate_sample_data():
                 VALUES (?, ?, ?, ?, 'issued')
             ''', (book_ids[i], user_ids[i], issue_date, due_date))
             
-            # Update available copies
             cursor.execute('''
                 UPDATE books SET available_copies = available_copies - 1
                 WHERE book_id = ?

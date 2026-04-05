@@ -38,7 +38,6 @@ class LibraryDatabase:
         cursor = conn.cursor()
         
         try:
-            # Users table (Admin, Librarian, Student)
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS users (
                     user_id SERIAL PRIMARY KEY,
@@ -52,7 +51,6 @@ class LibraryDatabase:
                 )
             ''')
             
-            # Books table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS books (
                     book_id SERIAL PRIMARY KEY,
@@ -70,7 +68,6 @@ class LibraryDatabase:
                 )
             ''')
             
-            # Issue records table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS issue_records (
                     issue_id SERIAL PRIMARY KEY,
@@ -87,7 +84,6 @@ class LibraryDatabase:
                 )
             ''')
             
-            # Reservations table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS reservations (
                     reservation_id SERIAL PRIMARY KEY,
@@ -100,7 +96,6 @@ class LibraryDatabase:
                 )
             ''')
             
-            # Activity log table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS activity_log (
                     log_id SERIAL PRIMARY KEY,
@@ -112,7 +107,6 @@ class LibraryDatabase:
                 )
             ''')
             
-            # Create default admin if not exists
             cursor.execute("SELECT * FROM users WHERE role='admin'")
             if not cursor.fetchone():
                 admin_password = self.hash_password("admin123")
@@ -190,10 +184,8 @@ class LibraryManagementSystem:
         )
         self.current_user = None
         
-        # Fine rate per day
         self.fine_per_day = 5.0
         
-        # Show login screen
         self.show_login()
 
     def setup_modern_styles(self):
@@ -322,38 +314,31 @@ class LibraryManagementSystem:
         self.clear_window()
         self.root.configure(bg=self.colors['app_bg'])
         
-        # Main frame
         login_frame = tk.Frame(self.root, bg=self.colors['surface'], padx=45, pady=45)
         login_frame.place(relx=0.5, rely=0.5, anchor="center")
         
-        # Title
         title = tk.Label(login_frame, text="📚 Library Management System", 
                 font=("Segoe UI", 24, "bold"), bg=self.colors['surface'], fg=self.colors['text_light'])
         title.grid(row=0, column=0, columnspan=2, pady=(0, 30))
         
-        # Username
         tk.Label(login_frame, text="Username:", font=("Segoe UI", 11), 
             bg=self.colors['surface'], fg=self.colors['text_light']).grid(row=1, column=0, sticky="e", padx=10, pady=10)
         self.username_entry = self.create_modern_entry(login_frame, width=28, font=("Segoe UI", 11))
         self.username_entry.grid(row=1, column=1, pady=10)
         
-        # Password
         tk.Label(login_frame, text="Password:", font=("Segoe UI", 11), 
             bg=self.colors['surface'], fg=self.colors['text_light']).grid(row=2, column=0, sticky="e", padx=10, pady=10)
         self.password_entry = self.create_modern_entry(login_frame, width=28, show="*", font=("Segoe UI", 11))
         self.password_entry.grid(row=2, column=1, pady=10)
         
-        # Login button
         login_btn = self.create_modern_button(login_frame, "Login", self.login, variant="success",
                               font=("Segoe UI", 11, "bold"), padx=34, pady=10)
         login_btn.grid(row=3, column=0, columnspan=2, pady=20)
         
-        # Register button
         register_btn = self.create_modern_button(login_frame, "Register New Student", self.show_register,
                              variant="primary", font=("Segoe UI", 10), padx=22, pady=8)
         register_btn.grid(row=4, column=0, columnspan=2)
         
-        # Bind Enter key
         self.password_entry.bind('<Return>', lambda e: self.login())
     
     def login(self):
@@ -400,7 +385,6 @@ class LibraryManagementSystem:
         tk.Label(reg_frame, text="Student Registration", font=("Segoe UI", 20, "bold"),
             bg=self.colors['surface'], fg=self.colors['text_light']).grid(row=0, column=0, columnspan=2, pady=20)
         
-        # Form fields
         fields = [
             ("Username:", "username"),
             ("Password:", "password"),
@@ -418,7 +402,6 @@ class LibraryManagementSystem:
             entry.grid(row=idx, column=1, pady=8)
             self.reg_entries[key] = entry
         
-        # Buttons
         btn_frame = tk.Frame(reg_frame, bg=self.colors['surface'])
         btn_frame.grid(row=len(fields)+1, column=0, columnspan=2, pady=20)
         
@@ -432,7 +415,6 @@ class LibraryManagementSystem:
         """Register a new student"""
         data = {k: v.get().strip() for k, v in self.reg_entries.items()}
         
-        # Validation
         if not all(data.values()):
             messagebox.showerror("Error", "All fields are required")
             return
@@ -460,7 +442,6 @@ class LibraryManagementSystem:
         self.clear_window()
         self.root.configure(bg=self.colors['app_bg'])
         
-        # Header
         header = tk.Frame(self.root, bg=self.colors['surface'], height=80)
         header.pack(fill="x")
         
@@ -470,18 +451,15 @@ class LibraryManagementSystem:
         self.create_modern_button(header, "Logout", self.logout, variant="danger",
                       font=("Segoe UI", 10), padx=20, pady=7).pack(side="right", padx=20)
         
-        # Main content area
         content = tk.Frame(self.root, bg=self.colors['page_bg'])
         content.pack(fill="both", expand=True, padx=20, pady=20)
         
-        # Left sidebar - Menu
         menu_frame = tk.Frame(content, bg=self.colors['surface_soft'], width=250)
         menu_frame.pack(side="left", fill="y", padx=(0, 20))
         
         tk.Label(menu_frame, text="📋 Menu", font=("Segoe UI", 14, "bold"),
             bg=self.colors['surface_soft'], fg=self.colors['text_light'], pady=15).pack(fill="x")
         
-        # Menu options based on role
         menu_options = self.get_menu_options()
         
         for option, command in menu_options:
@@ -491,11 +469,9 @@ class LibraryManagementSystem:
                            padx=20, pady=12, command=command, borderwidth=0, cursor="hand2")
             btn.pack(fill="x", pady=2)
         
-        # Right content area
         self.content_area = tk.Frame(content, bg=self.colors['page_bg'])
         self.content_area.pack(side="right", fill="both", expand=True)
         
-        # Show default view
         self.show_home()
     
     def get_menu_options(self):
@@ -536,14 +512,12 @@ class LibraryManagementSystem:
         tk.Label(self.content_area, text="📊 Dashboard", font=("Segoe UI", 19, "bold"),
             bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
-        # Statistics cards
         stats_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         stats_frame.pack(fill="both", expand=True, padx=20)
         
         conn = self.db.get_connection()
         cursor = conn.cursor()
         
-        # Get statistics
         cursor.execute("SELECT COUNT(*) FROM books")
         total_books = cursor.fetchone()[0]
         
@@ -561,7 +535,6 @@ class LibraryManagementSystem:
         
         conn.close()
         
-        # Create stat cards
         stats = [
             ("📚 Total Books", total_books, "#2563eb"),
             ("📖 Total Copies", total_copies, "#7c3aed"),
@@ -581,7 +554,6 @@ class LibraryManagementSystem:
             
             stats_frame.grid_columnconfigure(idx%3, weight=1)
         
-        # Recent activity (for admin/librarian)
         if self.current_user['role'] in ['admin', 'librarian']:
             recent_frame = tk.LabelFrame(self.content_area, text="Recent Issues", 
                                         font=("Segoe UI", 11, "bold"), bg=self.colors['panel'],
@@ -616,7 +588,6 @@ class LibraryManagementSystem:
         tk.Label(self.content_area, text="🔍 Search Books", font=("Segoe UI", 19, "bold"),
             bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
-        # Search controls
         search_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         search_frame.pack(fill="x", padx=20, pady=10)
         
@@ -639,18 +610,15 @@ class LibraryManagementSystem:
                       variant="neutral", font=("Segoe UI", 10),
                       padx=16, pady=7).grid(row=0, column=4, padx=5)
         
-        # Results table
         table_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         table_frame.pack(fill="both", expand=True, padx=20, pady=10)
         
-        # Scrollbars
         v_scroll = ttk.Scrollbar(table_frame, style="Modern.Vertical.TScrollbar")
         v_scroll.pack(side="right", fill="y")
         
         h_scroll = ttk.Scrollbar(table_frame, orient="horizontal", style="Modern.Horizontal.TScrollbar")
         h_scroll.pack(side="bottom", fill="x")
         
-        # Treeview
         columns = ("ID", "ISBN", "Title", "Author", "Category", "Year", "Available", "Location")
         self.search_tree = ttk.Treeview(table_frame, columns=columns, show="headings",
                                        yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set,
@@ -668,12 +636,10 @@ class LibraryManagementSystem:
         v_scroll.config(command=self.search_tree.yview)
         h_scroll.config(command=self.search_tree.xview)
         
-        # Bind Enter key
         self.search_entry.bind('<Return>', lambda e: self.search_books())
     
     def search_books(self, show_all=False):
         """Search books in database"""
-        # Clear existing items
         for item in self.search_tree.get_children():
             self.search_tree.delete(item)
         
@@ -706,7 +672,6 @@ class LibraryManagementSystem:
         tk.Label(self.content_area, text="📖 My Issued Books", font=("Segoe UI", 19, "bold"),
             bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
-        # Table
         table_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         table_frame.pack(fill="both", expand=True, padx=20, pady=10)
         
@@ -719,13 +684,11 @@ class LibraryManagementSystem:
         
         tree.column("Book Title", width=250)
         
-        # Scrollbar
         scrollbar = ttk.Scrollbar(table_frame, command=tree.yview, style="Modern.Vertical.TScrollbar")
         tree.configure(yscrollcommand=scrollbar.set)
         scrollbar.pack(side="right", fill="y")
         tree.pack(fill="both", expand=True, padx=(0, 6), pady=(0, 6))
         
-        # Fetch data
         conn = self.db.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
@@ -740,7 +703,6 @@ class LibraryManagementSystem:
         conn.close()
         
         for record in records:
-            # Calculate fine if overdue
             due_date = datetime.strptime(record[3], "%Y-%m-%d")
             if datetime.now() > due_date:
                 days_overdue = (datetime.now() - due_date).days
@@ -857,19 +819,16 @@ class LibraryManagementSystem:
         form_frame = tk.Frame(self.content_area, bg=self.colors['panel'], padx=24, pady=24)
         form_frame.pack(pady=20)
         
-        # Student username
         tk.Label(form_frame, text="Student Username:", font=("Segoe UI", 10),
             bg=self.colors['panel'], fg=self.colors['text_dark']).grid(row=0, column=0, sticky="e", padx=10, pady=10)
         self.issue_username = self.create_modern_entry(form_frame, width=32)
         self.issue_username.grid(row=0, column=1, pady=10)
         
-        # Book ISBN or ID
         tk.Label(form_frame, text="Book ISBN/ID:", font=("Segoe UI", 10),
             bg=self.colors['panel'], fg=self.colors['text_dark']).grid(row=1, column=0, sticky="e", padx=10, pady=10)
         self.issue_book_id = self.create_modern_entry(form_frame, width=32)
         self.issue_book_id.grid(row=1, column=1, pady=10)
         
-        # Days
         tk.Label(form_frame, text="Issue Days:", font=("Segoe UI", 10),
             bg=self.colors['panel'], fg=self.colors['text_dark']).grid(row=2, column=0, sticky="e", padx=10, pady=10)
         self.issue_days = tk.Spinbox(
@@ -906,7 +865,6 @@ class LibraryManagementSystem:
         conn = self.db.get_connection()
         cursor = conn.cursor()
         
-        # Get user
         cursor.execute("SELECT user_id, full_name FROM users WHERE username=%s", (username,))
         user = cursor.fetchone()
         
@@ -915,7 +873,6 @@ class LibraryManagementSystem:
             conn.close()
             return
         
-        # Get book
         cursor.execute('''
             SELECT book_id, title, available_copies FROM books 
             WHERE book_id=%s OR isbn=%s
@@ -932,7 +889,6 @@ class LibraryManagementSystem:
             conn.close()
             return
         
-        # Issue the book
         issue_date = datetime.now().date()
         due_date = issue_date + timedelta(days=days)
         
@@ -941,7 +897,6 @@ class LibraryManagementSystem:
             VALUES (%s, %s, %s, %s, %s)
         ''', (book[0], user[0], issue_date, due_date, 'issued'))
         
-        # Update available copies
         cursor.execute('''
             UPDATE books SET available_copies = available_copies - 1
             WHERE book_id = %s
@@ -977,7 +932,6 @@ class LibraryManagementSystem:
                       variant="success", font=("Segoe UI", 11, "bold"),
                       padx=30, pady=10).pack(pady=20)
         
-        # Show pending returns
         tk.Label(self.content_area, text="Pending Returns:", font=("Segoe UI", 14, "bold"),
             bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=(30, 10))
         
@@ -994,7 +948,6 @@ class LibraryManagementSystem:
         tree.column("Book", width=200)
         tree.pack(fill="both", expand=True)
         
-        # Fetch pending returns
         conn = self.db.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
@@ -1030,7 +983,6 @@ class LibraryManagementSystem:
         conn = self.db.get_connection()
         cursor = conn.cursor()
         
-        # Get issue record
         cursor.execute('''
             SELECT i.issue_id, i.book_id, i.due_date, b.title, u.full_name
             FROM issue_records i
@@ -1046,12 +998,10 @@ class LibraryManagementSystem:
             conn.close()
             return
         
-        # Calculate fine
         due_date = datetime.strptime(record[2], "%Y-%m-%d")
         days_overdue = max(0, (datetime.now() - due_date).days)
         fine = days_overdue * self.fine_per_day
         
-        # Update record
         return_date = datetime.now().date()
         cursor.execute('''
             UPDATE issue_records 
@@ -1059,7 +1009,6 @@ class LibraryManagementSystem:
             WHERE issue_id = %s
         ''', (return_date, fine, issue_id))
         
-        # Update available copies
         cursor.execute('''
             UPDATE books SET available_copies = available_copies + 1
             WHERE book_id = %s
@@ -1086,7 +1035,6 @@ class LibraryManagementSystem:
         tk.Label(self.content_area, text="🎫 Reserve a Book", font=("Segoe UI", 19, "bold"),
             bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
-        # Available books for reservation
         tk.Label(self.content_area, text="Books Currently Unavailable:", 
             font=("Segoe UI", 11), bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=10)
         
@@ -1103,7 +1051,6 @@ class LibraryManagementSystem:
         tree.column("Title", width=300)
         tree.pack(fill="both", expand=True)
         
-        # Fetch books with no available copies
         conn = self.db.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
@@ -1119,7 +1066,6 @@ class LibraryManagementSystem:
         for book in books:
             tree.insert("", "end", values=book)
         
-        # Reserve button
         btn_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         btn_frame.pack(pady=20)
         
@@ -1143,7 +1089,6 @@ class LibraryManagementSystem:
         conn = self.db.get_connection()
         cursor = conn.cursor()
         
-        # Check if book exists and is unavailable
         cursor.execute('''
             SELECT book_id, title, available_copies FROM books
             WHERE book_id = %s
@@ -1161,7 +1106,6 @@ class LibraryManagementSystem:
             conn.close()
             return
         
-        # Check if already reserved
         cursor.execute('''
             SELECT * FROM reservations
             WHERE book_id = %s AND user_id = ? AND status = 'active'
@@ -1172,7 +1116,6 @@ class LibraryManagementSystem:
             conn.close()
             return
         
-        # Create reservation
         cursor.execute('''
             INSERT INTO reservations (book_id, user_id, status)
             VALUES (%s, %s, 'active')
@@ -1195,7 +1138,6 @@ class LibraryManagementSystem:
         tk.Label(self.content_area, text="👥 Manage Users", font=("Segoe UI", 19, "bold"),
             bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
         
-        # Search frame
         search_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         search_frame.pack(fill="x", padx=20, pady=10)
         
@@ -1206,7 +1148,6 @@ class LibraryManagementSystem:
                                bg=self.colors['input_bg'], fg=self.colors['text_dark'])
         search_entry.pack(side="left", padx=5)
         
-        # Users table
         table_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         table_frame.pack(fill="both", expand=True, padx=20, pady=10)
         
@@ -1255,7 +1196,6 @@ class LibraryManagementSystem:
             search_entry.delete(0, tk.END)
             populate_users()
         
-        # Search buttons
         button_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         button_frame.pack(fill="x", padx=20, pady=5)
         
@@ -1272,10 +1212,8 @@ class LibraryManagementSystem:
                               font=("Segoe UI", 10))
         count_label.pack(side="right", padx=10)
         
-        # Search on Enter key
         search_entry.bind('<Return>', lambda e: on_search())
         
-        # Initial populate
         populate_users()
 
     def show_issued_books(self):
@@ -1286,7 +1224,6 @@ class LibraryManagementSystem:
         tk.Label(self.content_area, text="📚 Issued Books", font=("Segoe UI", 19, "bold"),
             bg=self.colors['page_bg'], fg=self.colors['text_dark']).pack(pady=20)
 
-        # Search frame
         search_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         search_frame.pack(fill="x", padx=20, pady=10)
 
@@ -1302,7 +1239,6 @@ class LibraryManagementSystem:
                               font=("Segoe UI", 10, "bold"))
         count_label.pack(side="right", padx=10)
 
-        # Table
         table_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         table_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
@@ -1395,7 +1331,6 @@ class LibraryManagementSystem:
         reports_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         reports_frame.pack(fill="both", expand=True, padx=20)
         
-        # Overdue books
         overdue_frame = tk.LabelFrame(reports_frame, text="⚠️ Overdue Books", 
                          font=("Segoe UI", 12, "bold"), bg=self.colors['panel'],
                          fg=self.colors['text_dark'], padx=10, pady=10)
@@ -1424,7 +1359,6 @@ class LibraryManagementSystem:
             tk.Label(overdue_frame, text="✅ No overdue books!", 
                     font=("Segoe UI", 10), bg=self.colors['panel'], fg="green").pack()
         
-        # Most issued books
         popular_frame = tk.LabelFrame(reports_frame, text="🔥 Most Issued Books", 
                                      font=("Segoe UI", 12, "bold"), bg=self.colors['panel'],
                                      fg=self.colors['text_dark'], padx=10, pady=10)
@@ -1459,11 +1393,9 @@ class LibraryManagementSystem:
         table_frame = tk.Frame(self.content_area, bg=self.colors['page_bg'])
         table_frame.pack(fill="both", expand=True, padx=20, pady=10)
         
-        # Scrollbar
         scrollbar = ttk.Scrollbar(table_frame, style="Modern.Vertical.TScrollbar")
         scrollbar.pack(side="right", fill="y")
         
-        # Treeview
         columns = ("ID", "User", "Action", "Details", "Timestamp")
         tree = ttk.Treeview(table_frame, columns=columns, show="headings", 
                            yscrollcommand=scrollbar.set, height=25, style="Modern.Treeview")
@@ -1478,7 +1410,6 @@ class LibraryManagementSystem:
         scrollbar.config(command=tree.yview)
         tree.pack(fill="both", expand=True, padx=(0, 6), pady=(0, 6))
         
-        # Fetch logs
         conn = self.db.get_connection()
         cursor = conn.cursor()
         cursor.execute('''

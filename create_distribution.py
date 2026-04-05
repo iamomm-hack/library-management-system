@@ -10,7 +10,6 @@ def create_distribution_package():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     dist_folder = f"LibraryApp_{timestamp}"
     
-    # Create folder structure
     Path(dist_folder).mkdir(exist_ok=True)
     Path(f"{dist_folder}/app").mkdir(exist_ok=True)
     
@@ -20,28 +19,18 @@ def create_distribution_package():
     ╚════════════════════════════════════════════════════════════╝
     """)
     
-    # 1. Copy .exe
     if Path("dist/LibrarySystem.exe").exists():
         shutil.copy("dist/LibrarySystem.exe", f"{dist_folder}/app/LibrarySystem.exe")
         print("✅ Copied: LibrarySystem.exe")
     
-    # 2. Create .env template
     env_template = """# Library Management System - Configuration
-# 
-# ⚠️ SETUP INSTRUCTIONS:
-# 1. Replace DB_HOST with server machine IP
-# 2. Keep DB_PORT, DB_NAME, DB_USER same
-# 3. Update DB_PASSWORD if needed
-# 4. Save this file in same folder as LibrarySystem.exe
 
-# DATABASE CONNECTION (Update this)
 DB_HOST=192.168.0.103          # Change to server machine IP
 DB_PORT=5432
 DB_NAME=library_db
 DB_USER=postgres
 DB_PASSWORD=system
 
-# API KEY (Keep same)
 GOOGLE_BOOKS_API_KEY=AIzaSyBJyYCWvvikhEfhjfWDUGFqZn1MJwmzKMo
 """
     
@@ -49,7 +38,6 @@ GOOGLE_BOOKS_API_KEY=AIzaSyBJyYCWvvikhEfhjfWDUGFqZn1MJwmzKMo
         f.write(env_template)
     print("✅ Created: .env template")
     
-    # 3. Create SETUP.txt instructions
     setup_instructions = """╔════════════════════════════════════════════════════════════╗
 ║     Library Management System - SETUP INSTRUCTIONS        ║
 ║                   (For User/Other Machine)                ║
@@ -111,7 +99,6 @@ Problem: "Wrong password/login fails"
         f.write(setup_instructions)
     print("✅ Created: SETUP.txt")
     
-    # 4. Create test connection script
     test_script = """#!/usr/bin/env python3
 import os
 from dotenv import load_dotenv
@@ -157,7 +144,6 @@ except Exception as e:
         f.write(test_script)
     print("✅ Created: test_connection.py")
     
-    # 5. Create SERVER SETUP guide
     server_setup = """╔════════════════════════════════════════════════════════════╗
 ║   Library Management System - SERVER SETUP GUIDE         ║
 ║             (For Machine Hosting Database)               ║
@@ -234,7 +220,6 @@ Your machine will be the DATABASE SERVER that other users connect to.
         f.write(server_setup)
     print("✅ Created: SERVER_SETUP.txt")
     
-    # 6. Create requirements.txt
     requirements = """psycopg2-binary==2.9.9
 python-dotenv==1.0.0
 """
@@ -242,7 +227,6 @@ python-dotenv==1.0.0
         f.write(requirements)
     print("✅ Created: requirements.txt")
     
-    # Summary
     print(f"""
 ╔════════════════════════════════════════════════════════════╗
 ✅ DISTRIBUTION PACKAGE READY!

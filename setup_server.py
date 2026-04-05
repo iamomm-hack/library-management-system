@@ -34,7 +34,6 @@ def main():
     
     input("👉 Press ENTER after noting your IP...")
     
-    # Step 2
     print("\n\n2️⃣ Now adding the Firewall rule...")
     print("(This requires Administrator rights)\n")
     
@@ -46,23 +45,19 @@ def main():
     
     input("\n👉 Press ENTER to continue...")
     
-    # Step 3
     print("\n\n3️⃣ Enabling PostgreSQL for network access...\n")
     
     config_file = r"C:\Program Files\PostgreSQL\16\data\postgresql.conf"
     
-    # Check if file exists
     if os.path.exists(config_file):
         print(f"✅ Config file found: {config_file}\n")
         
         with open(config_file, 'r', encoding='utf-8', errors='ignore') as f:
             content = f.read()
         
-        # Check if already changed
         if "listen_addresses = '*'" in content:
             print("✅ Setup already applied (listen_addresses = '*')")
         else:
-            # Update the file
             content = content.replace("listen_addresses = 'localhost'", "listen_addresses = '*'")
             
             with open(config_file, 'w', encoding='utf-8') as f:
@@ -73,7 +68,6 @@ def main():
         
         input("\n👉 Press ENTER to restart PostgreSQL...")
         
-        # Restart PostgreSQL
         print("\n4️⃣ Restarting PostgreSQL...\n")
         os.system("net stop postgresql-x64-16 >nul 2>&1")
         print("   Stopping...")
@@ -93,7 +87,6 @@ def main():
     
     input("\n👉 Press ENTER to run the test...")
     
-    # Test
     print("\n\n5️⃣ Testing whether the database is accessible:\n")
     
     print("Command:")
@@ -105,7 +98,6 @@ def main():
     
     input("\n👉 Press ENTER...")
     
-    # Summary
     print("""
 ╔════════════════════════════════════════════════════════════╗
 ✅ SERVER SETUP COMPLETE!

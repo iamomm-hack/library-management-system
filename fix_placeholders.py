@@ -3,7 +3,6 @@ import re
 with open('library_system.py', 'r', encoding='utf-8', errors='ignore') as f:
     content = f.read()
 
-# Replace all remaining problematic patterns
 replacements = [
     ('WHERE i.user_id = ? AND i.status', 'WHERE i.user_id = %s AND i.status'),
     ('VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', 'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'),

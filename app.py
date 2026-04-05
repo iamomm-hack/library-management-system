@@ -114,7 +114,6 @@ def log_activity(action, details):
         cur.close()
         conn.close()
 
-# Database connection
 def get_db_connection():
     conn = psycopg2.connect(
         host=os.getenv('DB_HOST', 'localhost'),
@@ -125,12 +124,10 @@ def get_db_connection():
     )
     return conn
 
-# HOME PAGE
 @app.route('/')
 def home():
     return redirect(url_for('login'))
 
-# LOGIN PAGE
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -140,7 +137,6 @@ def login():
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         
-        # Stored passwords are SHA-256 hashes in users.password
         password_hash = hashlib.sha256(password.encode()).hexdigest()
 
         cur.execute("SELECT * FROM users WHERE username=%s AND password=%s", 
@@ -167,14 +163,12 @@ def login():
     
     return render_template('login.html')
 
-# DASHBOARD
 @app.route('/dashboard')
 @login_required
 def dashboard():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
-    # Get stats
     cur.execute("SELECT COUNT(*) as total FROM users WHERE role='student'")
     total_students = cur.fetchone()['total']
     
@@ -201,7 +195,6 @@ def dashboard():
                           issued=issued_books,
                           user=current_user_view())
 
-# SEARCH BOOKS
 @app.route('/api/search-books')
 @login_required
 def search_books():
@@ -223,7 +216,6 @@ def search_books():
     
     return jsonify(books)
 
-# SEARCH USERS (Admin only)
 @app.route('/api/search-users')
 @login_required
 @staff_required
@@ -435,7 +427,6 @@ def add_book():
 
     return render_template('add_book.html', user=current_user_view())
 
-# ISSUE BOOK
 @app.route('/issue-book', methods=['GET', 'POST'])
 @login_required
 @staff_required
@@ -469,13 +460,11 @@ def issue_book():
             if int(book_row['available_copies']) <= 0:
                 raise ValueError('No available copies for this book.')
 
-            # Create issue record
             cur.execute("""
                 INSERT INTO issue_records (user_id, book_id, issue_date, due_date, status)
                 VALUES (%s, %s, CURRENT_DATE, CURRENT_DATE + INTERVAL '14 days', 'issued')
             """, (user_row['user_id'], book_row['book_id']))
             
-            # Update book stock
             cur.execute("""
                 UPDATE books SET available_copies = available_copies - 1 
                 WHERE book_id = %s AND available_copies > 0
@@ -495,7 +484,6 @@ def issue_book():
 
     return render_template('issue_book.html', user=current_user_view())
 
-# RETURN BOOK
 @app.route('/return-book', methods=['GET', 'POST'])
 @login_required
 @staff_required
@@ -507,21 +495,18 @@ def return_book():
         cur = conn.cursor()
         
         try:
-            # Get issue record
             cur.execute("SELECT book_id FROM issue_records WHERE issue_id=%s", (issue_id,))
             issue = cur.fetchone()
             
             if issue:
                 book_id = issue[0]
                 
-                # Mark as returned
                 cur.execute("""
                     UPDATE issue_records 
                     SET status='returned', return_date=CURRENT_DATE 
                     WHERE issue_id=%s
                 """, (issue_id,))
                 
-                # Update book stock
                 cur.execute("""
                     UPDATE books SET available_copies = available_copies + 1 
                     WHERE book_id = %s
@@ -541,7 +526,6 @@ def return_book():
 
     return render_template('return_book.html', user=current_user_view())
 
-# LOGOUT
 @app.route('/logout')
 @login_required
 def logout():
@@ -549,7 +533,6 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# ERROR HANDLER
 @app.errorhandler(404)
 def not_found(e):
     return render_template('404.html'), 404

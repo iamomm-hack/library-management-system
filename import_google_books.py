@@ -26,7 +26,6 @@ def load_env_file(env_path=".env"):
 
 load_env_file()
 
-# Configuration
 GOOGLE_API_KEY = os.getenv("GOOGLE_BOOKS_API_KEY", "")
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = int(os.getenv("DB_PORT", "5432"))
@@ -40,11 +39,10 @@ def import_books_by_search(search_query, max_results=100):
     print(f"Searching for '{search_query}' on Google Books...")
     
     try:
-        # Call Google Books API
         url = f"https://www.googleapis.com/books/v1/volumes"
         params = {
             'q': search_query,
-            'maxResults': min(max_results, 40),  # API max is 40 per request
+            'maxResults': min(max_results, 40),
             'key': GOOGLE_API_KEY
         }
         
@@ -58,7 +56,6 @@ def import_books_by_search(search_query, max_results=100):
             print(f"No books found for '{search_query}'")
             return 0
         
-        # Connect to database
         conn = psycopg2.connect(
             host=DB_HOST,
             port=DB_PORT,
@@ -101,12 +98,10 @@ def import_books_by_search(search_query, max_results=100):
                 year = int(year_text) if year_text.isdigit() else 2000
                 description = vol_info.get('description', '')[:500]
                 
-                # Skip only if we could not build a stable unique key
                 if not isbn:
                     skipped_count += 1
                     continue
                 
-                # Insert with ON CONFLICT to avoid duplicates
                 cursor.execute('''
                     INSERT INTO books (isbn, title, author, category, publisher, year, 
                                      total_copies, available_copies, description)
@@ -199,7 +194,6 @@ if __name__ == "__main__":
         print("3. Add GOOGLE_BOOKS_API_KEY=your_key in .env")
         sys.exit(1)
     
-    # Import by category
     print("Starting bulk import from Google Books API...")
     print(f"Target: library_db @ {DB_HOST}")
     

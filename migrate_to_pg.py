@@ -6,7 +6,6 @@ import re
 with open('library_system.py', 'r', encoding='utf-8', errors='ignore') as f:
     content = f.read()
 
-# Replace all ? placeholders with %s
 replacements = [
     ('VALUES (?, ?, ?, ?, ?)', 'VALUES (%s, %s, %s, %s, %s)'),
     ('VALUES (?, ?, ?, ?, ?, ?)', 'VALUES (%s, %s, %s, %s, %s, %s)'),
@@ -24,7 +23,6 @@ replacements = [
 for old, new in replacements:
     content = content.replace(old, new)
 
-# Replace LIKE with ILIKE for PostgreSQL
 content = content.replace('LIKE ?', 'ILIKE %s')
 content = content.replace('LIKE "', 'ILIKE "')
 

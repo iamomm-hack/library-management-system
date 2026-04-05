@@ -1,11 +1,5 @@
-# GitHub Linguist overrides
-# Keep language graph focused on application logic (Python backend)
-
-# Flask/Jinja templates are presentation assets
 templates/*.html linguist-generated=true
 
-# Frontend styling assets (optional to exclude from language graph)
 static/*.css linguist-generated=true
 
-# Build artifacts should never affect language stats
 build/** linguist-generated=true

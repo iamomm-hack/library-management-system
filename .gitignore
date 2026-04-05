@@ -1,28 +1,22 @@
-# Python
 __pycache__/
 *.pyc
 .venv/
 
-# Local databases
 library.db
 *.sqlite
 *.sqlite3
 
-# Environment and secrets
 .env
 .env.*
 !.env.example
 
-# Student/real data files (never commit)
 *.xlsx
 *.xls
 *.csv
 
-# OS/editor
 .DS_Store
 Thumbs.db
 
-# Temporary/generated setup guides (non-essential)
 DEPLOYMENT_GUIDE.md
 SIMPLE_SETUP_HINDI.md
 SETUP_GUIDE_ENGLISH.txt
@@ -35,7 +29,6 @@ CHOOSE_YOUR_SETUP.txt
 WEB_DEPLOYMENT_CLOUD.txt
 COMPLETE_ROADMAP.txt
 
-# Generated build/distribution artifacts
 build/
 dist/
 LibrarySystem.spec
