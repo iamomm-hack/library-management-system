@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_avatar.html" import avatar_label %}
 
 {% block content %}
 <div class="container page-shell">
@@ -7,8 +8,17 @@
             <h2>Manage Users</h2>
             <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
         </div>
+        <div class="table-toolbar">
+            <input
+                type="text"
+                id="manageUsersSearch"
+                class="table-search"
+                placeholder="Search by user ID, name, username, email, role..."
+                aria-label="Search in users table"
+            >
+        </div>
         <div class="table-wrap">
-            <table class="data-table">
+            <table class="data-table" id="manageUsersTable">
                 <thead>
                     <tr>
                         <th>User ID</th>
@@ -21,16 +31,22 @@
                 </thead>
                 <tbody>
                     {% for u in users %}
-                    <tr>
+                    <tr class="filter-row">
                         <td>{{ u.user_id }}</td>
-                        <td>{{ u.full_name }}</td>
+                        <td>
+                            {% if u.role == 'student' %}
+                            {{ avatar_label(u.full_name, u.avatar_gender or 'male') }}
+                            {% else %}
+                            {{ u.full_name }}
+                            {% endif %}
+                        </td>
                         <td>{{ u.username }}</td>
                         <td>{{ u.email or '-' }}</td>
                         <td>{{ u.phone or '-' }}</td>
                         <td>{{ u.role }}</td>
                     </tr>
                     {% else %}
-                    <tr>
+                    <tr class="no-data-row">
                         <td colspan="6">No users found.</td>
                     </tr>
                     {% endfor %}
@@ -39,4 +55,24 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('manageUsersSearch');
+    const table = document.getElementById('manageUsersTable');
+    if (!searchInput || !table) {
+        return;
+    }
+
+    const rows = Array.from(table.querySelectorAll('tbody tr.filter-row'));
+
+    searchInput.addEventListener('input', function () {
+        const query = this.value.trim().toLowerCase();
+        rows.forEach(function (row) {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+});
+</script>
 {% endblock %}
