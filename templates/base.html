@@ -14,10 +14,19 @@
     {% if user %}
     <nav class="navbar">
         <div>
-            <h1>📚 Library System</h1>
+            <h1 class="navbar-brand">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21V5.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M4 5.5V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M9 7.5h7M9 11h7M9 14.5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>Library System</span>
+            </h1>
         </div>
         <div class="navbar-user">
-            <span>Welcome, {{ user.full_name }}!</span>
+            <span class="welcome-line">
+                Welcome, {{ user.full_name }}!
+            </span>
             <a href="{{ url_for('logout') }}">Logout</a>
         </div>
     </nav>
