@@ -263,6 +263,7 @@ def my_books():
                 i.issue_id,
                 u.full_name,
                 u.username,
+                u.role,
                 b.title,
                 b.author,
                 i.issue_date,
@@ -323,7 +324,7 @@ def issued_books():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
-        SELECT i.issue_id, u.full_name, u.username, b.title, i.issue_date, i.due_date
+        SELECT i.issue_id, u.full_name, u.username, u.role, b.title, i.issue_date, i.due_date
         FROM issue_records i
         JOIN users u ON u.user_id = i.user_id
         JOIN books b ON b.book_id = i.book_id
@@ -378,7 +379,7 @@ def activity_log():
     try:
         cur.execute(
             """
-            SELECT a.log_id, a.action, a.details, a.timestamp, u.full_name
+            SELECT a.log_id, a.action, a.details, a.timestamp, u.full_name, u.role
             FROM activity_log a
             LEFT JOIN users u ON u.user_id = a.user_id
             ORDER BY a.log_id DESC
