@@ -279,6 +279,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const dashLayout = document.getElementById('dashLayout');
     const themeToggle = document.getElementById('themeToggle');
     const menuToggle = document.getElementById('menuToggle');
+    const bodyNode = document.body;
     const globalSearch = document.getElementById('globalSearch');
     const bookResults = document.getElementById('bookResults');
     const userResults = document.getElementById('userResults');
@@ -289,15 +290,29 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    const savedTheme = localStorage.getItem('libTheme');
-    if (savedTheme === 'dark') {
-        dashLayout.classList.add('dark');
+    function applyTheme(theme) {
+        const isDark = theme === 'dark';
+        dashLayout.classList.toggle('dark', isDark);
+
+        if (bodyNode) {
+            bodyNode.classList.toggle('dashboard-dark', isDark);
+        }
+
+        if (themeToggle) {
+            themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+            themeToggle.setAttribute('title', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+        }
     }
+
+    const savedTheme = localStorage.getItem('libTheme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
 
     if (themeToggle) {
         themeToggle.addEventListener('click', function () {
-            dashLayout.classList.toggle('dark');
-            localStorage.setItem('libTheme', dashLayout.classList.contains('dark') ? 'dark' : 'light');
+            const nextTheme = dashLayout.classList.contains('dark') ? 'light' : 'dark';
+            applyTheme(nextTheme);
+            localStorage.setItem('libTheme', nextTheme);
         });
     }
 
