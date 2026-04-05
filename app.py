@@ -11,6 +11,7 @@ import psycopg2.extras
 from datetime import datetime
 import hashlib
 import os
+import re
 from functools import wraps
 from dotenv import load_dotenv
 
@@ -19,6 +20,59 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this'
 CORS(app)
+
+
+FEMALE_NAME_HINTS = {
+    'aarti', 'aisha', 'akanksha', 'akriti', 'alisha', 'ananya', 'anjali', 'ankita',
+    'anshika', 'archana', 'arti', 'bhavna', 'deepti', 'diksha', 'divya', 'gauri',
+    'kajal', 'karishma', 'kavita', 'khushi', 'kriti', 'mansi', 'megha', 'muskan',
+    'neha', 'nikita', 'nisha', 'palak', 'payal', 'pooja', 'pragya', 'prerna',
+    'priyanka', 'rani', 'rashmi', 'riya', 'sakshi', 'saloni', 'shivani', 'shreya',
+    'simran', 'sonal', 'supriya', 'swati', 'tanvi', 'vaishali'
+}
+
+
+def infer_avatar_gender(full_name=None, username=None, explicit_gender=None):
+    gender_value = str(explicit_gender or '').strip().lower()
+    if gender_value in {'f', 'female', 'girl', 'woman'}:
+        return 'female'
+    if gender_value in {'m', 'male', 'boy', 'man'}:
+        return 'male'
+
+    source_text = f"{full_name or ''} {username or ''}".strip().lower()
+    if not source_text:
+        return 'male'
+
+    name_tokens = [token for token in re.split(r'[^a-z]+', source_text) if token]
+    for token in name_tokens:
+        if token in FEMALE_NAME_HINTS:
+            return 'female'
+
+    return 'male'
+
+
+def decorate_rows_with_avatar(rows, name_key='full_name', username_key='username', gender_key='gender'):
+    decorated = []
+    for row in rows:
+        item = dict(row)
+        username_value = item.get(username_key) if username_key else None
+        item['avatar_gender'] = infer_avatar_gender(
+            item.get(name_key),
+            username_value,
+            item.get(gender_key)
+        )
+        decorated.append(item)
+    return decorated
+
+
+def current_user_view():
+    user_view = dict(session)
+    user_view['avatar_gender'] = infer_avatar_gender(
+        user_view.get('full_name'),
+        user_view.get('username'),
+        user_view.get('gender')
+    )
+    return user_view
 
 
 def login_required(fn):
@@ -94,10 +148,12 @@ def login():
         user = cur.fetchone()
         
         if user:
+            user_gender = user['gender'] if 'gender' in user.keys() else None
             session['user_id'] = user['user_id']
             session['username'] = user['username']
             session['role'] = user['role']
             session['full_name'] = user['full_name']
+            session['avatar_gender'] = infer_avatar_gender(user['full_name'], user['username'], user_gender)
             
             cur.close()
             conn.close()
@@ -124,8 +180,11 @@ def dashboard():
     
     cur.execute("SELECT COUNT(*) as total FROM books")
     total_books = cur.fetchone()['total']
+
+    cur.execute("SELECT COALESCE(SUM(total_copies), 0) as total FROM books")
+    total_copies = cur.fetchone()['total']
     
-    cur.execute("SELECT COUNT(*) as total FROM books WHERE available_copies > 0")
+    cur.execute("SELECT COALESCE(SUM(available_copies), 0) as total FROM books")
     available_books = cur.fetchone()['total']
     
     cur.execute("SELECT COUNT(*) as total FROM issue_records WHERE status='issued'")
@@ -137,9 +196,10 @@ def dashboard():
     return render_template('dashboard.html', 
                           students=total_students,
                           books=total_books,
+                          total_copies=total_copies,
                           available=available_books,
                           issued=issued_books,
-                          user=session)
+                          user=current_user_view())
 
 # SEARCH BOOKS
 @app.route('/api/search-books')
@@ -182,6 +242,7 @@ def search_users():
     """, (f'%{query}%', f'%{query}%'))
     
     users = rows_to_dicts(cur.fetchall())
+    users = decorate_rows_with_avatar(users, username_key='enrollment_number')
     cur.close()
     conn.close()
     
@@ -193,21 +254,45 @@ def search_users():
 def my_books():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute(
-        """
-        SELECT i.issue_id, b.title, b.author, i.issue_date, i.due_date, i.return_date, i.status
-        FROM issue_records i
-        JOIN books b ON b.book_id = i.book_id
-        WHERE i.user_id = %s
-        ORDER BY i.issue_id DESC
-        LIMIT 100
-        """,
-        (session['user_id'],),
-    )
-    records = cur.fetchall()
+
+    is_staff_view = session.get('role') in ['admin', 'librarian']
+    if is_staff_view:
+        cur.execute(
+            """
+            SELECT
+                i.issue_id,
+                u.full_name,
+                u.username,
+                b.title,
+                b.author,
+                i.issue_date,
+                i.due_date,
+                i.return_date,
+                i.status
+            FROM issue_records i
+            JOIN books b ON b.book_id = i.book_id
+            JOIN users u ON u.user_id = i.user_id
+            ORDER BY i.issue_id DESC
+            LIMIT 300
+            """
+        )
+    else:
+        cur.execute(
+            """
+            SELECT i.issue_id, b.title, b.author, i.issue_date, i.due_date, i.return_date, i.status
+            FROM issue_records i
+            JOIN books b ON b.book_id = i.book_id
+            WHERE i.user_id = %s
+            ORDER BY i.issue_id DESC
+            LIMIT 100
+            """,
+            (session['user_id'],),
+        )
+
+    records = decorate_rows_with_avatar(cur.fetchall())
     cur.close()
     conn.close()
-    return render_template('my_books.html', records=records, user=session)
+    return render_template('my_books.html', records=records, user=current_user_view(), is_staff_view=is_staff_view)
 
 
 @app.route('/manage-users')
@@ -224,10 +309,10 @@ def manage_users():
         LIMIT 200
         """
     )
-    users = cur.fetchall()
+    users = decorate_rows_with_avatar(cur.fetchall())
     cur.close()
     conn.close()
-    return render_template('manage_users.html', users=users, user=session)
+    return render_template('manage_users.html', users=users, user=current_user_view())
 
 
 @app.route('/issued-books')
@@ -247,10 +332,10 @@ def issued_books():
         LIMIT 300
         """
     )
-    records = cur.fetchall()
+    records = decorate_rows_with_avatar(cur.fetchall())
     cur.close()
     conn.close()
-    return render_template('issued_books.html', records=records, user=session)
+    return render_template('issued_books.html', records=records, user=current_user_view())
 
 
 @app.route('/reports')
@@ -279,7 +364,7 @@ def reports():
         active_issues=active_issues,
         returned=returned,
         total_fine=total_fine,
-        user=session,
+        user=current_user_view(),
     )
 
 
@@ -307,7 +392,8 @@ def activity_log():
         cur.close()
         conn.close()
 
-    return render_template('activity_log.html', records=records, user=session)
+    records = decorate_rows_with_avatar(records, username_key=None)
+    return render_template('activity_log.html', records=records, user=current_user_view())
 
 
 @app.route('/add-book', methods=['GET', 'POST'])
@@ -323,7 +409,7 @@ def add_book():
 
         if not title or not author:
             flash('Title and Author are required.', 'error')
-            return render_template('add_book.html', user=session)
+            return render_template('add_book.html', user=current_user_view())
 
         conn = get_db_connection()
         cur = conn.cursor()
@@ -346,7 +432,7 @@ def add_book():
             cur.close()
             conn.close()
 
-    return render_template('add_book.html', user=session)
+    return render_template('add_book.html', user=current_user_view())
 
 # ISSUE BOOK
 @app.route('/issue-book', methods=['GET', 'POST'])
@@ -404,9 +490,9 @@ def issue_book():
             conn.rollback()
             cur.close()
             conn.close()
-            return render_template('issue_book.html', error=str(e), user=session)
-    
-    return render_template('issue_book.html', user=session)
+            return render_template('issue_book.html', error=str(e), user=current_user_view())
+
+    return render_template('issue_book.html', user=current_user_view())
 
 # RETURN BOOK
 @app.route('/return-book', methods=['GET', 'POST'])
@@ -450,9 +536,9 @@ def return_book():
             conn.rollback()
             cur.close()
             conn.close()
-            return render_template('return_book.html', error=str(e), user=session)
-    
-    return render_template('return_book.html', user=session)
+            return render_template('return_book.html', error=str(e), user=current_user_view())
+
+    return render_template('return_book.html', user=current_user_view())
 
 # LOGOUT
 @app.route('/logout')
