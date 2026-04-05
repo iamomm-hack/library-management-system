@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container" style="max-width: 500px;">
+<div class="container narrow-form-container">
     <div class="card">
-        <h2 style="margin-bottom: 2rem;">Issue Book to Student</h2>
+        <h2 class="form-page-title">Issue Book to Student</h2>
         
         {% if error %}
         <div class="error">{{ error }}</div>
@@ -19,14 +19,11 @@
                 <label>Book ID / Title</label>
                 <input type="text" name="book_id" placeholder="Enter book ID" required>
             </div>
-            
-            <button type="submit" class="btn btn-success" style="width: 100%;">
-                Issue Book
-            </button>
-            
-            <a href="{{ url_for('dashboard') }}" class="btn btn-primary" style="width: 100%; margin-top: 1rem; text-align: center; text-decoration: none;">
-                Back
-            </a>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-success btn-block">Issue Book</button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-block">Back</a>
+            </div>
         </form>
     </div>
 </div>
