@@ -6,21 +6,87 @@
 
 {% block content %}
 <div class="dash-layout" id="dashLayout">
-    <aside class="dash-sidebar">
-        <div class="dash-logo">LIB</div>
+    <aside class="dash-sidebar" id="dashSidebar">
+        <div class="dash-logo" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24" fill="none">
+                <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21V5.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 5.5V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M9 7.5h7M9 11h7M9 14.5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+        </div>
         <h3 class="menu-title">Menu</h3>
         <nav class="side-menu">
-            <a href="{{ url_for('dashboard') }}" class="side-link active">🏠 Home</a>
-            <a href="{{ url_for('dashboard') }}" class="side-link" id="btnSearchBooks">🔎 Search Books</a>
-            <a href="{{ url_for('my_books') }}" class="side-link">📖 My Books</a>
+            <a href="{{ url_for('dashboard') }}" class="side-link active">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Home</span>
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="side-link" id="btnSearchBooks">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>Search Books</span>
+            </a>
+            <a href="{{ url_for('my_books') }}" class="side-link">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21V5.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M4 5.5V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>My Books</span>
+            </a>
             {% if user.role in ['admin', 'librarian'] %}
-            <a href="{{ url_for('add_book') }}" class="side-link">➕ Add Book</a>
-            <a href="{{ url_for('issue_book') }}" class="side-link">📤 Issue Book</a>
-            <a href="{{ url_for('return_book') }}" class="side-link">📥 Return Book</a>
-            <a href="{{ url_for('manage_users') }}" class="side-link">👥 Manage Users</a>
-            <a href="{{ url_for('issued_books') }}" class="side-link">📚 Issued Books</a>
-            <a href="{{ url_for('reports') }}" class="side-link">📊 Reports</a>
-            <a href="{{ url_for('activity_log') }}" class="side-link">🧾 Activity Log</a>
+            <a href="{{ url_for('add_book') }}" class="side-link">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/>
+                </svg>
+                <span>Add Book</span>
+            </a>
+            <a href="{{ url_for('issue_book') }}" class="side-link">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 12h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="m12 6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Issue Book</span>
+            </a>
+            <a href="{{ url_for('return_book') }}" class="side-link">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M20 12H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="m12 18-6-6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Return Book</span>
+            </a>
+            <a href="{{ url_for('manage_users') }}" class="side-link">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
+                    <circle cx="16" cy="9" r="2.5" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="M3.5 19a4.5 4.5 0 0 1 9 0M12 19a4 4 0 0 1 8 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>Manage Users</span>
+            </a>
+            <a href="{{ url_for('issued_books') }}" class="side-link">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>Issued Books</span>
+            </a>
+            <a href="{{ url_for('reports') }}" class="side-link">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 20V10M12 20V6M19 20v-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M4 20h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>Reports</span>
+            </a>
+            <a href="{{ url_for('activity_log') }}" class="side-link">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 3h10a2 2 0 0 1 2 2v14l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5-2 1.5V5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 8h6M9 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>Activity Log</span>
+            </a>
             {% endif %}
         </nav>
     </aside>
@@ -28,20 +94,43 @@
     <main class="dash-main">
         <header class="dash-topbar">
             <div class="top-left">
-                <button class="menu-btn" title="Menu">☰</button>
-                <h1>Dashboard</h1>
+                <button id="menuToggle" class="menu-btn" title="Toggle menu" aria-label="Toggle menu">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <h1>
+                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="3" y="3" width="8" height="8" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                        <rect x="13" y="3" width="8" height="5" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                        <rect x="13" y="10" width="8" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                        <rect x="3" y="13" width="8" height="8" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </h1>
             </div>
             <div class="top-search-wrap">
                 <input type="text" id="globalSearch" class="top-search" placeholder="Search books or users..." title="Global search">
             </div>
             <div class="top-right">
-                <button id="themeToggle" class="theme-toggle" title="Toggle theme">◐</button>
+                <button id="themeToggle" class="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
+                    <svg class="icon icon-sm icon-theme-sun" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M12 3.5v2M12 18.5v2M20.5 12h-2M5.5 12h-2M18.4 5.6l-1.4 1.4M7 17l-1.4 1.4M18.4 18.4 17 17M7 7 5.6 5.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    <svg class="icon icon-sm icon-theme-moon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M18 14.5A7.5 7.5 0 0 1 9.5 6a7.5 7.5 0 1 0 8.5 8.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
                 <a href="{{ url_for('logout') }}" class="logout-pill">Logout</a>
             </div>
         </header>
 
         <section class="hello-card">
-            <h2>Hello, <span>{{ user.full_name }}</span></h2>
+            <h2 class="hello-title">
+                <span class="hello-prefix">Hello,</span>
+                <span class="hello-user-name">{{ user.full_name }}</span>
+            </h2>
             <p id="currentDateTime"></p>
             {% if user.role in ['admin', 'librarian'] %}
             <div class="quick-actions">
@@ -51,78 +140,99 @@
             {% endif %}
         </section>
 
-        <section class="dash-stats-grid">
-            <div class="mini-stat">
-                <div>
-                    <p>Total Students</p>
-                    <h3>{{ students }}</h3>
-                </div>
-                <span>👤</span>
-            </div>
-            <div class="mini-stat">
+        <section class="dash-stats-grid dashboard-highlight-grid">
+            <article class="mini-stat stat-card stat-blue">
                 <div>
                     <p>Total Books</p>
                     <h3>{{ books }}</h3>
                 </div>
-                <span>📚</span>
-            </div>
-            <div class="mini-stat">
+                <span class="stat-icon-wrap">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21V5.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 5.5V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </span>
+            </article>
+            <article class="mini-stat stat-card stat-violet">
                 <div>
-                    <p>Available Books</p>
+                    <p>Total Copies</p>
+                    <h3>{{ total_copies }}</h3>
+                </div>
+                <span class="stat-icon-wrap">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="4" y="4" width="12" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M8 8h5M8 12h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M16 8h3a1 1 0 0 1 1 1v11H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            </article>
+            <article class="mini-stat stat-card stat-green">
+                <div>
+                    <p>Available</p>
                     <h3>{{ available }}</h3>
                 </div>
-                <span>✅</span>
-            </div>
-            <div class="mini-stat">
+                <span class="stat-icon-wrap">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 12.5 9.2 17 19 7.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
+                </span>
+            </article>
+            <article class="mini-stat stat-card stat-amber">
                 <div>
-                    <p>Active Issues</p>
+                    <p>Issued</p>
                     <h3>{{ issued }}</h3>
                 </div>
-                <span>🕘</span>
-            </div>
+                <span class="stat-icon-wrap">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M12 8v4l2.5 2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            </article>
+            <article class="mini-stat stat-card stat-cyan">
+                <div>
+                    <p>Students</p>
+                    <h3>{{ students }}</h3>
+                </div>
+                <span class="stat-icon-wrap">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
+                        <circle cx="16" cy="9" r="2.5" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M3.5 19a4.5 4.5 0 0 1 9 0M12 19a4 4 0 0 1 8 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </span>
+            </article>
         </section>
 
         <section class="dual-panels">
             {% if user.role in ['admin', 'librarian'] %}
             <article class="panel-card">
-                <div class="panel-head">
-                    <h3>Users List</h3>
+                <div class="panel-head panel-head-split">
+                    <h3>Users Snapshot</h3>
+                    <a href="{{ url_for('manage_users') }}" class="read-more-link">Read More</a>
                 </div>
                 <div class="table-wrap" id="userResults"></div>
             </article>
             {% endif %}
 
             <article class="panel-card">
-                <div class="panel-head">
-                    <h3>Books List</h3>
+                <div class="panel-head panel-head-split">
+                    <h3>Books Snapshot</h3>
+                    <a href="{{ url_for('issued_books') if user.role in ['admin', 'librarian'] else url_for('my_books') }}" class="read-more-link">Read More</a>
                 </div>
                 <div class="table-wrap" id="bookResults"></div>
             </article>
         </section>
 
-        <section class="choices-panel">
-            <h3>Top Choices</h3>
-            <div class="choices-grid">
-                <div class="choice-book">
-                    <img src="https://images.unsplash.com/photo-1541963463532-d68292c34b19?auto=format&fit=crop&w=400&q=60" alt="Book cover 1">
-                    <p>Design Thinking</p>
-                </div>
-                <div class="choice-book">
-                    <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=60" alt="Book cover 2">
-                    <p>Clean Code</p>
-                </div>
-                <div class="choice-book">
-                    <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=400&q=60" alt="Book cover 3">
-                    <p>System Design</p>
-                </div>
-                <div class="choice-book">
-                    <img src="https://images.unsplash.com/photo-1491841550275-ad7854e35ca6?auto=format&fit=crop&w=400&q=60" alt="Book cover 4">
-                    <p>Data Structures</p>
-                </div>
-                <div class="choice-book">
-                    <img src="https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=400&q=60" alt="Book cover 5">
-                    <p>Algorithms</p>
-                </div>
+        <section class="dashboard-note">
+            <p>Showing only top 5 records in home preview for a cleaner UI.</p>
+            <div class="readmore-group">
+                <a href="{{ url_for('my_books') }}" class="btn btn-primary">Read More: My Books</a>
+                {% if user.role in ['admin', 'librarian'] %}
+                <a href="{{ url_for('manage_users') }}" class="btn btn-primary">Read More: Manage Users</a>
+                <a href="{{ url_for('issued_books') }}" class="btn btn-success">Read More: Issued Books</a>
+                {% endif %}
             </div>
         </section>
     </main>
@@ -132,91 +242,186 @@
 document.addEventListener('DOMContentLoaded', function () {
     const dateNode = document.getElementById('currentDateTime');
     const now = new Date();
-    dateNode.textContent = now.toLocaleDateString(undefined, {
-        month: 'short', day: 'numeric', year: 'numeric', weekday: 'long'
-    }) + ' | ' + now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (dateNode) {
+        dateNode.textContent = now.toLocaleDateString(undefined, {
+            month: 'short', day: 'numeric', year: 'numeric', weekday: 'long'
+        }) + ' | ' + now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    }
 
     const dashLayout = document.getElementById('dashLayout');
     const themeToggle = document.getElementById('themeToggle');
+    const menuToggle = document.getElementById('menuToggle');
+    const globalSearch = document.getElementById('globalSearch');
+    const bookResults = document.getElementById('bookResults');
+    const userResults = document.getElementById('userResults');
+    const panelNode = document.querySelector('.dual-panels');
+    const previewLimit = 5;
+
+    if (!dashLayout) {
+        return;
+    }
+
     const savedTheme = localStorage.getItem('libTheme');
     if (savedTheme === 'dark') {
         dashLayout.classList.add('dark');
     }
 
-    themeToggle.addEventListener('click', function () {
-        dashLayout.classList.toggle('dark');
-        localStorage.setItem('libTheme', dashLayout.classList.contains('dark') ? 'dark' : 'light');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function () {
+            dashLayout.classList.toggle('dark');
+            localStorage.setItem('libTheme', dashLayout.classList.contains('dark') ? 'dark' : 'light');
+        });
+    }
+
+    const mobileMedia = window.matchMedia('(max-width: 900px)');
+    function syncSidebarMode() {
+        if (mobileMedia.matches) {
+            dashLayout.classList.add('sidebar-hidden');
+            return;
+        }
+
+        dashLayout.classList.remove('sidebar-hidden');
+    }
+
+    syncSidebarMode();
+    if (mobileMedia.addEventListener) {
+        mobileMedia.addEventListener('change', syncSidebarMode);
+    } else if (mobileMedia.addListener) {
+        mobileMedia.addListener(syncSidebarMode);
+    }
+
+    if (menuToggle) {
+        menuToggle.addEventListener('click', function () {
+            dashLayout.classList.toggle('sidebar-hidden');
+        });
+    }
+
+    document.addEventListener('click', function (event) {
+        if (!mobileMedia.matches) {
+            return;
+        }
+
+        const clickedInsideSidebar = event.target.closest('.dash-sidebar');
+        const clickedMenuToggle = event.target.closest('#menuToggle');
+        if (!clickedInsideSidebar && !clickedMenuToggle) {
+            dashLayout.classList.add('sidebar-hidden');
+        }
     });
 
-    const globalSearch = document.getElementById('globalSearch');
-    const bookResults = document.getElementById('bookResults');
-    const userResults = document.getElementById('userResults');
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function avatarNameHtml(name, gender) {
+        const normalizedGender = String(gender || 'male').toLowerCase() === 'female' ? 'female' : 'male';
+        const pfpIcon = '<svg class="icon avatar-pfp-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+            '<circle cx="12" cy="12" r="11" class="avatar-pfp-bg"/>' +
+            '<circle cx="12" cy="9.2" r="3.5" class="avatar-pfp-shape"/>' +
+            '<path d="M4.3 20a7.7 7.7 0 0 1 15.4 0" class="avatar-pfp-shape"/>' +
+            '</svg>';
+
+        return '<span class="avatar-inline">' +
+            '<span class="avatar-badge ' + (normalizedGender === 'female' ? 'avatar-female' : 'avatar-male') + '">' +
+            pfpIcon +
+            '</span>' +
+            '<span class="avatar-text">' + escapeHtml(name || '-') + '</span>' +
+            '</span>';
+    }
 
     function renderBooks(books) {
-        if (!bookResults) return;
+        if (!bookResults) {
+            return;
+        }
+
+        const safeBooks = Array.isArray(books) ? books.slice(0, previewLimit) : [];
+        if (!safeBooks.length) {
+            bookResults.innerHTML = '<p class="table-foot-note">No books found for this search.</p>';
+            return;
+        }
+
         const html = '<table class="data-table">' +
             '<thead><tr><th>Book ID</th><th>Title</th><th>Author</th><th>Available</th></tr></thead><tbody>' +
-            books.map(function (b) {
+            safeBooks.map(function (book) {
                 return '<tr>' +
-                    '<td>' + (b.book_id || '-') + '</td>' +
-                    '<td>' + (b.title || '-') + '</td>' +
-                    '<td>' + (b.author || '-') + '</td>' +
-                    '<td>' + (b.available_copies ?? '-') + '</td>' +
+                    '<td>' + (book.book_id || '-') + '</td>' +
+                    '<td>' + (book.title || '-') + '</td>' +
+                    '<td>' + (book.author || '-') + '</td>' +
+                    '<td>' + (book.available_copies ?? '-') + '</td>' +
                 '</tr>';
             }).join('') +
-            '</tbody></table>';
+            '</tbody></table>' +
+            '<p class="table-foot-note">Showing first ' + safeBooks.length + ' records.</p>';
+
         bookResults.innerHTML = html;
     }
 
     function renderUsers(users) {
-        if (!userResults) return;
+        if (!userResults) {
+            return;
+        }
+
+        const safeUsers = Array.isArray(users) ? users.slice(0, previewLimit) : [];
+        if (!safeUsers.length) {
+            userResults.innerHTML = '<p class="table-foot-note">No users found for this search.</p>';
+            return;
+        }
+
         const html = '<table class="data-table">' +
             '<thead><tr><th>User ID</th><th>Name</th><th>Enrollment</th><th>Phone</th></tr></thead><tbody>' +
-            users.map(function (u) {
+            safeUsers.map(function (user) {
                 return '<tr>' +
-                    '<td>' + (u.user_id || '-') + '</td>' +
-                    '<td>' + (u.full_name || '-') + '</td>' +
-                    '<td>' + (u.enrollment_number || '-') + '</td>' +
-                    '<td>' + (u.phone || '-') + '</td>' +
+                    '<td>' + (user.user_id || '-') + '</td>' +
+                    '<td>' + avatarNameHtml(user.full_name, user.avatar_gender) + '</td>' +
+                    '<td>' + (user.enrollment_number || '-') + '</td>' +
+                    '<td>' + (user.phone || '-') + '</td>' +
                 '</tr>';
             }).join('') +
-            '</tbody></table>';
+            '</tbody></table>' +
+            '<p class="table-foot-note">Showing first ' + safeUsers.length + ' records.</p>';
+
         userResults.innerHTML = html;
     }
 
     function loadData(query) {
         fetch('/api/search-books?q=' + encodeURIComponent(query || ''))
-            .then(function (r) { return r.json(); })
-            .then(function (books) { renderBooks(books || []); });
+            .then(function (response) { return response.json(); })
+            .then(function (books) { renderBooks(books || []); })
+            .catch(function () { renderBooks([]); });
 
         if (userResults) {
             fetch('/api/search-users?q=' + encodeURIComponent(query || ''))
-                .then(function (r) { return r.json(); })
-                .then(function (users) {
-                    if (!Array.isArray(users)) {
-                        renderUsers([]);
-                        return;
-                    }
-                    renderUsers(users);
-                });
+                .then(function (response) { return response.json(); })
+                .then(function (users) { renderUsers(users || []); })
+                .catch(function () { renderUsers([]); });
         }
     }
 
-    let debounceHandle;
-    globalSearch.addEventListener('input', function () {
-        clearTimeout(debounceHandle);
-        const q = this.value.trim();
-        debounceHandle = setTimeout(function () {
-            loadData(q);
-        }, 250);
-    });
+    if (globalSearch) {
+        let debounceHandle;
+        globalSearch.addEventListener('input', function () {
+            clearTimeout(debounceHandle);
+            const query = this.value.trim();
+            debounceHandle = setTimeout(function () {
+                loadData(query);
+            }, 250);
+        });
+    }
 
     const btnSearchBooks = document.getElementById('btnSearchBooks');
     if (btnSearchBooks) {
-        btnSearchBooks.addEventListener('click', function (e) {
-            e.preventDefault();
-            globalSearch.focus();
-            document.querySelector('.dual-panels')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        btnSearchBooks.addEventListener('click', function (event) {
+            event.preventDefault();
+            if (globalSearch) {
+                globalSearch.focus();
+            }
+            if (panelNode) {
+                panelNode.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         });
     }
 
