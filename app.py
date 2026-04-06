@@ -220,18 +220,28 @@ def search_books():
 @login_required
 @staff_required
 def search_users():
-    query = request.args.get('q', '')
+    query = request.args.get('q', '').strip()
     
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
-    cur.execute("""
+    cur.execute(
+        """
         SELECT user_id, full_name, email, phone, username AS enrollment_number
-        FROM users 
-        WHERE role='student' AND (full_name ILIKE %s OR username ILIKE %s)
-        ORDER BY user_id DESC
-        LIMIT 25
-    """, (f'%{query}%', f'%{query}%'))
+        FROM users
+        WHERE role = 'student'
+          AND (
+              full_name ILIKE %s
+              OR username ILIKE %s
+              OR COALESCE(email, '') ILIKE %s
+              OR COALESCE(phone, '') ILIKE %s
+              OR CAST(user_id AS TEXT) ILIKE %s
+          )
+        ORDER BY full_name ASC
+        LIMIT 100
+        """,
+        (f'%{query}%', f'%{query}%', f'%{query}%', f'%{query}%', f'%{query}%'),
+    )
     
     users = rows_to_dicts(cur.fetchall())
     users = decorate_rows_with_avatar(users, username_key='enrollment_number')
@@ -292,16 +302,34 @@ def my_books():
 @login_required
 @staff_required
 def manage_users():
+    query = request.args.get('q', '').strip()
+
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute(
-        """
-        SELECT user_id, full_name, username, email, phone, role
-        FROM users
-        ORDER BY user_id DESC
-        LIMIT 200
-        """
-    )
+    if query:
+        like_query = f'%{query}%'
+        cur.execute(
+            """
+            SELECT user_id, full_name, username, email, phone, role
+            FROM users
+            WHERE CAST(user_id AS TEXT) ILIKE %s
+               OR full_name ILIKE %s
+               OR username ILIKE %s
+               OR COALESCE(email, '') ILIKE %s
+               OR COALESCE(phone, '') ILIKE %s
+               OR role ILIKE %s
+            ORDER BY user_id DESC
+            """,
+            (like_query, like_query, like_query, like_query, like_query, like_query),
+        )
+    else:
+        cur.execute(
+            """
+            SELECT user_id, full_name, username, email, phone, role
+            FROM users
+            ORDER BY user_id DESC
+            """
+        )
     users = decorate_rows_with_avatar(cur.fetchall())
     cur.close()
     conn.close()
