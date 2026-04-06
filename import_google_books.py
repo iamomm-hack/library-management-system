@@ -51,7 +51,6 @@ def import_books_by_search(search_query, max_results=100):
         
         data = response.json()
         items = data.get('items', [])
-        
         if not items:
             print(f"No books found for '{search_query}'")
             return 0
